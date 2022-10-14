@@ -5,64 +5,80 @@ using UnityEngine.UI;
 
 public class GameRTSController : MonoBehaviour
 {
+    //Check if you need to see the selection pyramid
     public bool debug = false;
+    
+    //Those are you use to handle finale position of multiple unit
+    //Will be moved in a different script when order are developed
     public int unitByLign = 10;
     public float spaceBetweenLigns = 2f;
     public float spaceBetweenUnits = 2f;
+    //Select the panel use for UI representation.
+    //It must containt a rectangle highligthing choosen unit
     [SerializeField] public RectTransform selectionPanel;
 
+    //Use to simulate mouse position in the world
     private Plane floor;
+    //Store position of the mouse in the world on left click down
     private Vector3 startPosition;
+    //Store position of the mouse in the worl on left click up 
     private Vector3 endPosition;
+    //Store position of the mouse on the screen
     private Vector3 startScreenPosition;
+    //Store the selection pyramid
     private MeshFilter pyramid;
     private MeshCollider selectionCollider;
+    //Store selectionned unit
     private List<unitScript> selectedUnit;
     
 
     private void Awake()
     {
         floor = new Plane(Vector3.up, 0);
+        
         selectionCollider = GetComponent<MeshCollider>();
         pyramid = GetComponent<MeshFilter>();
-        //On désactive le render si on est pas en débug pour éviter des calculs supplémentaires
+        
+        //If debug is not choosen, we deactivate the renderer
         MeshRenderer render = GetComponent<MeshRenderer>();
         render.enabled = debug;
+        
         selectedUnit = new List<unitScript>();
+        
         selectionPanel.GetComponent<Image>().enabled = false;
     }
 
     private void Update()
     {
-        //La sélection commence quand le clic gauche de la sourie est enfoncé.
+        //Selection start when the left click is pressed
         if (Input.GetMouseButtonDown(0))
         {
-            //On vide la liste des unités sélectionner et on reset la pyramide de sélection
+            //We empty the unit list & reset the selection pyramid
             resetSelection();
             resetSelectionPyramid();
-            //On recupére la position de la souris sur le sol
+            //We get  position of the mouse on the floor and sotres it.
             startPosition = getMousePositionOnFloor();
+            //We get position of the mouse on screen and activate UI
             startScreenPosition = Input.mousePosition;
             selectionPanel.GetComponent<Image>().enabled = true;
             positionSelectionPanel(startScreenPosition, startScreenPosition);
         }
         if (Input.GetMouseButton(0))
         {
+            //On each iteration, the UI panel is resized using the start position and the current position
             positionSelectionPanel(startScreenPosition, Input.mousePosition);
         }
 
-        //La sélection prend fin lorsque le clic gauche est relaché
+        //The selection end when the left click is released
         if (Input.GetMouseButtonUp(0))
         {
             endPosition = getMousePositionOnFloor();
             selectionPanel.GetComponent<Image>().enabled = false;
-            // On vérifie si le point de départ et d'arrivée de la sélection ne sont pas les mêmes pour éviter 
-            // une pyramide vide
+            //We check if the start and end world mouse position are different to avoid an non-volumic mesh
             if (endPosition != startPosition) generateSelectionPyramid(startPosition, endPosition);
             else
             {
-                //Si les points sont les mêmes on veut quand même sélectionner l'unité.
-                //Cette fois, on teste pour une raycast vers n'importe quel objet et on ne garde l'objet que s'il porte le script d'unité
+                //If the start and end position are the same, we use a raycast to detect if the mouse was over a unit
                 RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out hit, 1000))
@@ -76,7 +92,7 @@ public class GameRTSController : MonoBehaviour
             }
         }
 
-        //Si on appuis sur le clic droit de la souris on donne un ordre 
+        //If the right click is pressed, a move order is given
         if (Input.GetMouseButtonDown(1))
         {
             resetSelectionPyramid();
@@ -87,7 +103,7 @@ public class GameRTSController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        //Quand la pyramide est généré, les colliders se comportent comme s'ils rentraient dedans
+        //When the pyramid is generated, collider behave as if unit entered it.
         unitScript u = other.GetComponent<unitScript>();
         if (u != null) selectUnit(u);
     }
@@ -118,14 +134,21 @@ public class GameRTSController : MonoBehaviour
         }
     }
 
+    ///<summary>
+    /// Function calculSelectioPyramid.
+    /// Handle calculating every vertexs and faces of the selection pyramid 
+    /// and create a mesh from them.
+    /// The selection pyramid is created using world floor position of the mouse
+    /// and the position of the camera.
+    ///</summary>
     private Mesh calculSelectionPyramid(Vector3 start, Vector3 end)
     {
-        //Génére un mesh de pyramide, dont la base est sur le sol et la pointe sur la caméra
-        start = this.transform.InverseTransformPoint(start); //Convertis les position global en position local
+        //Transform mouse position from world to local
+        start = this.transform.InverseTransformPoint(start);
         end = this.transform.InverseTransformPoint(end); 
 
         Mesh mesh = new Mesh();
-        //Genere les 5 sommets de la pyramide
+        //Create the 5 vertexs of the pyramid
         Vector3[] vertices = new Vector3[5]
         {
             new Vector3(start.x,0,start.z),
@@ -136,8 +159,9 @@ public class GameRTSController : MonoBehaviour
         };
         mesh.vertices = vertices;
 
-        //Genere les triangles composant les faces
-        //Les numéros sont les indices des sommets dans le sens horaire face à la caméra
+        //Faces are built from triangle so we have 6 triangles from 5 faces
+        //As the base is a rectangle and must be generated from 2 triangles.
+        //Numbers are index of vertexs in the previous array, in clockwise order
         int[] tris = new int[18]
         {
             2,1,1,// 1
@@ -149,7 +173,7 @@ public class GameRTSController : MonoBehaviour
         };
         mesh.triangles = tris;
 
-        //On recalcul les normales pour pouvoir calculer les lumières
+        //Use to handle ligthing.
         mesh.RecalculateNormals();
         return mesh;
     }
@@ -158,7 +182,7 @@ public class GameRTSController : MonoBehaviour
     {
         Mesh m = calculSelectionPyramid(start, end);
         if (debug) pyramid.mesh = m;
-        selectionCollider.sharedMesh = m; //On génére un collider avec le même mesh pour détecter la présence d'unité.
+        selectionCollider.sharedMesh = m;
     }
 
     private void resetSelectionPyramid()
@@ -185,12 +209,12 @@ public class GameRTSController : MonoBehaviour
     private Vector3 getMousePositionOnFloor()
     {
         //On convertis la position de la sourie vers une position sur un plan fixe, infine et placer sur 0.
-        // -> Une évolution pourrait être d'utiliser un terrain.
+        // -> Une Ã©volution pourrait Ãªtre d'utiliser un terrain.
         float distance;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (floor.Raycast(ray, out distance))
         {
-            //On garde en mémoire la position de la sourie dans le monde.
+            //On garde en mÃ©moire la position de la sourie dans le monde.
             return ray.GetPoint(distance);
         }
         else
