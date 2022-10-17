@@ -2,7 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+///<summary>
+///Class GameRTSController, herits from MonoBehaviour
+///Handle selection and order for RTS unit.
+///Create a pyramid used to detect collision with unit in a 3D world.
+///Those unit are then selectionned and order can be given to them.
+///</summary>
 public class GameRTSController : MonoBehaviour
 {
     //Check if you need to see the selection pyramid
@@ -177,26 +182,46 @@ public class GameRTSController : MonoBehaviour
         mesh.RecalculateNormals();
         return mesh;
     }
-
+    
+    ///<summary>
+    ///Function generateSelectionPyramid
+    ///Create the pyramid and gives it to the mesh collider.
+    ///Handle debug if necessary.
+    ///</summary>
     private void generateSelectionPyramid(Vector3 start, Vector3 end)
     {
         Mesh m = calculSelectionPyramid(start, end);
         if (debug) pyramid.mesh = m;
         selectionCollider.sharedMesh = m;
     }
-
+    
+    ///summary>
+    ///Function resetSelectionPyramid
+    ///Reset the mesh collider's mesh
+    ///and handle debug reset if necessary
+    ///</summary>
     private void resetSelectionPyramid()
     {
         if (debug) pyramid.mesh = null;
         selectionCollider.sharedMesh = null;
     }
-
+    
+    ///<summary>
+    ///Function selectUnit
+    ///Handle unit selection by adding them to the selectedUnit list
+    ///and set the unit as selected
+    ///</summary>
     private void selectUnit(unitScript u)
     {
         u.SetSelected(u);
         selectedUnit.Add(u);
     }
-
+    
+    ///<summary>
+    ///Function resetSelection
+    ///Reset the selection list
+    ///and set all selected unit as unselected
+    ///</summary>
     private void resetSelection()
     {
         foreach(unitScript u in selectedUnit)
@@ -206,10 +231,16 @@ public class GameRTSController : MonoBehaviour
         selectedUnit.Clear();
     }
 
+    ///<summary>
+    ///Function getMousePositionOnFloor
+    ///Gives the position of the mouse on a infinit
+    ///plane location at y=0.
+    ///Could be moved in a utility global class
+    ///</summary>
     private Vector3 getMousePositionOnFloor()
     {
-        //On convertis la position de la sourie vers une position sur un plan fixe, infine et placer sur 0.
-        // -> Une évolution pourrait être d'utiliser un terrain.
+        //We convert the 2D mouse position by casting a ray to the floor object.
+        // -> Could be better to use a terran object.
         float distance;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (floor.Raycast(ray, out distance))
@@ -222,7 +253,11 @@ public class GameRTSController : MonoBehaviour
             return new Vector3();
         }
     }
-
+    
+    ///<summary>
+    ///Function positionSelectionPanel
+    ///Handle position calcul for the UI
+    ///</summary>
     private void positionSelectionPanel(Vector3 start, Vector3 end)
     {
         Vector3 middle = (start + end) / 2;
@@ -232,7 +267,11 @@ public class GameRTSController : MonoBehaviour
         Mathf.Abs(start.y - end.y),
         1);
     }
-
+    
+    ///<summary>
+    ///Function calculatePosition
+    ///Calcul of positions for multiple unit movment
+    ///</summary>
     private void calculatePosition(Vector3 position)
     {
         int j = 0; //indice de ligne
