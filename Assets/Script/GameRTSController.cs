@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+
 ///<summary>
-///Class GameRTSController, herits from MonoBehaviour
+///<para><c>Class GameRTSController</c> , herits from <c>MonoBehaviour</c></para>
 ///Handle selection and order for RTS unit.
 ///Create a pyramid used to detect collision with unit in a 3D world.
 ///Those unit are then selectionned and order can be given to them.
@@ -34,7 +35,7 @@ public class GameRTSController : MonoBehaviour
     private MeshFilter pyramid;
     private MeshCollider selectionCollider;
     //Store selectionned unit
-    private List<unitScript> selectedUnit;
+    private List<Unit> selectedUnit;
     
 
     private void Awake()
@@ -48,7 +49,7 @@ public class GameRTSController : MonoBehaviour
         MeshRenderer render = GetComponent<MeshRenderer>();
         render.enabled = debug;
         
-        selectedUnit = new List<unitScript>();
+        selectedUnit = new List<Unit>();
         
         selectionPanel.GetComponent<Image>().enabled = false;
     }
@@ -88,9 +89,9 @@ public class GameRTSController : MonoBehaviour
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out hit, 1000))
                 {
-                    if (hit.collider != null && hit.collider.GetComponent<unitScript>() != null)
+                    if (hit.collider != null && hit.collider.GetComponent<Unit>() != null)
                     {
-                        unitScript u = hit.collider.GetComponent<unitScript>();
+                        Unit u = hit.collider.GetComponent<Unit>();
                         selectUnit(u);
                     }
                 }
@@ -109,7 +110,7 @@ public class GameRTSController : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         //When the pyramid is generated, collider behave as if unit entered it.
-        unitScript u = other.GetComponent<unitScript>();
+        Unit u = other.GetComponent<Unit>();
         if (u != null) selectUnit(u);
     }
 
@@ -140,11 +141,14 @@ public class GameRTSController : MonoBehaviour
     }
 
     ///<summary>
-    /// Function calculSelectioPyramid.
-    /// Handle calculating every vertexs and faces of the selection pyramid 
+    /// <c>Function calculSelectionPyramid</c>.
+    /// <para>Handle calculating every vertexs and faces of the selection pyramid 
     /// and create a mesh from them.
     /// The selection pyramid is created using world floor position of the mouse
-    /// and the position of the camera.
+    /// and the position of the camera.</para>
+    /// <para><paramref name="start"/> Position where the left click was pressed.</para>
+    /// <para><paramref name="end"/> Position where the left click was released.</para>
+    /// <para><returns>Return a Mesh object that should represent a pyramid</returns></para>
     ///</summary>
     private Mesh calculSelectionPyramid(Vector3 start, Vector3 end)
     {
@@ -184,9 +188,11 @@ public class GameRTSController : MonoBehaviour
     }
     
     ///<summary>
-    ///Function generateSelectionPyramid
+    ///<para>Function generateSelectionPyramid
     ///Create the pyramid and gives it to the mesh collider.
-    ///Handle debug if necessary.
+    ///Handle debug if necessary.</para>
+    ///<para><paramref name="start"/>Position where the left click was pressed</para>
+    ///<para><paramref name="end"/>Poisition where the left click was released</para>
     ///</summary>
     private void generateSelectionPyramid(Vector3 start, Vector3 end)
     {
@@ -195,7 +201,7 @@ public class GameRTSController : MonoBehaviour
         selectionCollider.sharedMesh = m;
     }
     
-    ///summary>
+    ///<summary>
     ///Function resetSelectionPyramid
     ///Reset the mesh collider's mesh
     ///and handle debug reset if necessary
@@ -211,9 +217,9 @@ public class GameRTSController : MonoBehaviour
     ///Handle unit selection by adding them to the selectedUnit list
     ///and set the unit as selected
     ///</summary>
-    private void selectUnit(unitScript u)
+    private void selectUnit(Unit u)
     {
-        u.SetSelected(u);
+        u.setSelected(u);
         selectedUnit.Add(u);
     }
     
@@ -224,9 +230,9 @@ public class GameRTSController : MonoBehaviour
     ///</summary>
     private void resetSelection()
     {
-        foreach(unitScript u in selectedUnit)
+        foreach(Unit u in selectedUnit)
         {
-            u.SetSelected(false);
+            u.setSelected(false);
         }
         selectedUnit.Clear();
     }
@@ -255,8 +261,10 @@ public class GameRTSController : MonoBehaviour
     }
     
     ///<summary>
-    ///Function positionSelectionPanel
-    ///Handle position calcul for the UI
+    ///<para>Function positionSelectionPanel
+    ///Handle position calcul for the UI</para>
+    ///<para><paramref name="start"/>Position on the screen where the left click was pressed</para>
+    ///<para><paramref name="end"/>Position on the screen where the mouse is</para>
     ///</summary>
     private void positionSelectionPanel(Vector3 start, Vector3 end)
     {
@@ -269,20 +277,21 @@ public class GameRTSController : MonoBehaviour
     }
     
     ///<summary>
-    ///Function calculatePosition
-    ///Calcul of positions for multiple unit movment
+    ///<para>Function calculatePosition
+    ///Calcul of positions for multiple unit movment</para>
+    ///<para><paramref name="position"/>Position of the mouse in the world when the left click was pressed</para>
     ///</summary>
     private void calculatePosition(Vector3 position)
     {
         int j = 0; //indice de ligne
         int i = 0; //indice de colonne
-        foreach(unitScript u in selectedUnit)
+        foreach(Unit u in selectedUnit)
         {
             Vector3 pos = new Vector3(
                 position.x + (i % 10) * spaceBetweenUnits,
                 0,
                 position.z + j * spaceBetweenLigns);
-            u.generatPath(pos);
+            u.generatePath(pos);
             i++;
             if (i > unitByLign) { j++; }
         }
