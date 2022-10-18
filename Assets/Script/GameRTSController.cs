@@ -35,7 +35,7 @@ public class GameRTSController : MonoBehaviour
     private MeshFilter pyramid;
     private MeshCollider selectionCollider;
     //Store selectionned unit
-    private List<Unit> selectedUnit;
+    private List<AllieUnit> selectedUnit;
     
 
     private void Awake()
@@ -49,7 +49,7 @@ public class GameRTSController : MonoBehaviour
         MeshRenderer render = GetComponent<MeshRenderer>();
         render.enabled = debug;
         
-        selectedUnit = new List<Unit>();
+        selectedUnit = new List<AllieUnit>();
         
         selectionPanel.GetComponent<Image>().enabled = false;
     }
@@ -89,9 +89,9 @@ public class GameRTSController : MonoBehaviour
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out hit, 1000))
                 {
-                    if (hit.collider != null && hit.collider.GetComponent<Unit>() != null)
+                    if (hit.collider != null && hit.collider.GetComponent<AllieUnit>() != null)
                     {
-                        Unit u = hit.collider.GetComponent<Unit>();
+                        AllieUnit u = hit.collider.GetComponent<AllieUnit>();
                         selectUnit(u);
                     }
                 }
@@ -137,7 +137,7 @@ public class GameRTSController : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         //When the pyramid is generated, collider behave as if unit entered it.
-        Unit u = other.GetComponent<Unit>();
+        AllieUnit u = other.GetComponent<AllieUnit>();
         if (u != null) selectUnit(u);
     }
 
@@ -244,7 +244,7 @@ public class GameRTSController : MonoBehaviour
     ///Handle unit selection by adding them to the selectedUnit list
     ///and set the unit as selected
     ///</summary>
-    private void selectUnit(Unit u)
+    private void selectUnit(AllieUnit u)
     {
         if (!selectedUnit.Contains(u))
         {

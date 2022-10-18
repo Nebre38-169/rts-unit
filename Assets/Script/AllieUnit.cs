@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyUnit : Unit
+public class AllieUnit : Unit
 {
+
     private void OnTriggerEnter(Collider other)
     {
-        AllieUnit u = other.GetComponent<AllieUnit>();
+        EnemyUnit u = other.GetComponent<EnemyUnit>();
         if (u != null && target == null)
         {
             target = u;
@@ -15,7 +16,6 @@ public class EnemyUnit : Unit
                 currentOrder = Order.ATTACK;
                 //generatePath(u.transform.position);
             }
-
         }
     }
 }

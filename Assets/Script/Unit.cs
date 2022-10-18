@@ -63,30 +63,33 @@ public class Unit : MonoBehaviour
         }
         if(currentOrder == Order.ATTACK || currentOrder == Order.FORCEATTACK)
         {
-            if (isTargetInRange())
+            if (targetVerification())
             {
-                //Debug.Log("Target in range");
-                onPathComplete();
-                if(frameCounter > coolDownDuration * 60)
+                if (isTargetInRange())
                 {
-                    dealDamage(target);
+                    //Debug.Log("Target in range");
+                    onPathComplete();
+                    if (frameCounter > coolDownDuration * 60)
+                    {
+                        dealDamage(target);
+                    }
+                    else
+                    {
+                        frameCounter++;
+                    }
+                }
+                else if (isTargetLost() && currentOrder != Order.FORCEATTACK)
+                {
+                    target = null;
+                    onPathComplete();
+                    currentOrder = Order.IDLE;
                 }
                 else
                 {
-                    frameCounter++;
+                    //Debug.Log("Target not in range");
+                    if (path == null || !isTargetAtEndOfPath()) { generatePath(target.transform.position); }
+                    moveAlongPath();
                 }
-            }
-            else if (isTargetLost() && currentOrder != Order.FORCEATTACK)
-            {
-                target = null;
-                onPathComplete();
-                currentOrder = Order.IDLE;
-            }
-            else
-            {
-                //Debug.Log("Target not in range");
-                if(path == null || !isTargetAtEndOfPath()) { generatePath(target.transform.position); }
-                moveAlongPath();
             }
         }
         if(currentOrder == Order.MOVE)
@@ -95,7 +98,7 @@ public class Unit : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    /*private void OnTriggerEnter(Collider other)
     {
         Unit u = other.GetComponent<Unit>();
         if (u != null && target == null)
@@ -108,7 +111,7 @@ public class Unit : MonoBehaviour
             }
 
         }
-    }
+    }*/
 
     private void OnDrawGizmos()
     {
@@ -229,8 +232,6 @@ public class Unit : MonoBehaviour
         }
     }
 
- 
-
     private void onDeath()
     {
         Destroy(this.gameObject);
@@ -270,6 +271,17 @@ public class Unit : MonoBehaviour
         {
             return false;
         }
+    }
+
+    private bool targetVerification()
+    {
+        if(target.gameObject == null) 
+        { 
+            target = null;
+            currentOrder = Order.IDLE;
+            return false;
+        }
+        return true;
     }
 
     private void dealDamage(Unit u)
