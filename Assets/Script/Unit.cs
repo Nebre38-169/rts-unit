@@ -7,7 +7,8 @@ public enum Order
 {
     IDLE,
     MOVE,
-    ATTACK
+    ATTACK,
+    FORCEATTACK
 }
 
 /// <summary>
@@ -60,7 +61,7 @@ public class Unit : MonoBehaviour
         {
             currentOrder = Order.ATTACK;
         }
-        if(currentOrder == Order.ATTACK)
+        if(currentOrder == Order.ATTACK || currentOrder == Order.FORCEATTACK)
         {
             if (isTargetInRange())
             {
@@ -74,6 +75,12 @@ public class Unit : MonoBehaviour
                 {
                     frameCounter++;
                 }
+            }
+            else if (isTargetLost() && currentOrder != Order.FORCEATTACK)
+            {
+                target = null;
+                onPathComplete();
+                currentOrder = Order.IDLE;
             }
             else
             {
@@ -97,7 +104,7 @@ public class Unit : MonoBehaviour
             if (currentOrder != Order.MOVE)
             {
                 currentOrder = Order.ATTACK;
-                generatePath(u.transform.position);
+                //generatePath(u.transform.position);
             }
 
         }
@@ -143,7 +150,7 @@ public class Unit : MonoBehaviour
     /// <param name="endPosition">Vector3 the final position the unit must reach</param>
     public void generatePath(Vector3 endPosition)
     {
-        //Debug.Log("Calculating path");
+        Debug.Log("Calculating path");
         seeker.StartPath(rb.position, endPosition, onPathCalcul);
     }
 
@@ -188,10 +195,17 @@ public class Unit : MonoBehaviour
         generatePath(dest);
     }
 
+    public void setTarget(Unit u)
+    {
+        Debug.Log("unit " + u.gameObject.name + " is the new target");
+        currentOrder = Order.FORCEATTACK;
+        target = u;
+    }
+
     public void onPathComplete()
     {
         //Debug.Log("We reached end of path");
-        //rb.velocity = Vector3.zero;
+        rb.velocity = Vector3.zero;
         path = null;
         currentWaypoint = 0;
         if(currentOrder == Order.MOVE) { currentOrder = Order.IDLE; }
@@ -205,7 +219,7 @@ public class Unit : MonoBehaviour
     /// <param name="p">Path given by the Seeker</param>
     private void onPathCalcul(Path p)
     {
-        //Debug.Log("Path calcul completed");
+        Debug.Log("Path calcul completed");
         //Debug.Log(p.error);
         if (p.error == false)
         {

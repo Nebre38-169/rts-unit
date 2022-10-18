@@ -102,9 +102,36 @@ public class GameRTSController : MonoBehaviour
         if (Input.GetMouseButtonDown(1))
         {
             resetSelectionPyramid();
-            Vector3 dir = getMousePositionOnFloor();
-            calculatePosition(dir);
+            Unit u = isAUnitPointed();
+            if(u != null)
+            {
+                foreach(Unit selectU in selectedUnit)
+                {
+                    selectU.setTarget(u);
+                }
+            }
+            else
+            {
+                Vector3 dir = getMousePositionOnFloor();
+                calculatePosition(dir);
+            }
+            
         }
+    }
+
+    private Unit isAUnitPointed()
+    {
+        
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+        if(Physics.Raycast(ray, out hit, 1000f))
+        {
+            if (hit.collider != null && hit.collider.GetComponent<EnemyUnit>() != null)
+            {
+                return hit.collider.GetComponent<EnemyUnit>();
+            }
+        }
+        return null;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -219,8 +246,11 @@ public class GameRTSController : MonoBehaviour
     ///</summary>
     private void selectUnit(Unit u)
     {
-        u.setSelected(u);
-        selectedUnit.Add(u);
+        if (!selectedUnit.Contains(u))
+        {
+            u.setSelected(u);
+            selectedUnit.Add(u);
+        }
     }
     
     ///<summary>
@@ -285,6 +315,7 @@ public class GameRTSController : MonoBehaviour
     {
         int j = 0; //indice de ligne
         int i = 0; //indice de colonne
+        Debug.Log(selectedUnit.Count);
         foreach(Unit u in selectedUnit)
         {
             Vector3 pos = new Vector3(
