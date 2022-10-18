@@ -453,7 +453,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0.31852135, y: -0, z: -0, w: 0.94791573}
-  m_LocalPosition: {x: -6.01, y: 5.85, z: -8.85}
+  m_LocalPosition: {x: -9.2, y: 20.9, z: -28.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -940,6 +940,7 @@ GameObject:
   - component: {fileID: 1447809379}
   - component: {fileID: 1447809376}
   - component: {fileID: 1447809375}
+  - component: {fileID: 1447809381}
   - component: {fileID: 1447809374}
   m_Layer: 0
   m_Name: unit (1)
@@ -963,8 +964,13 @@ MonoBehaviour:
   speed: 200
   nextWaypointDistance: 1
   currentLife: 0
-  maxLife: 10
-  damage: 5
+  maxLife: 20
+  damage: 1
+  searchRange: 10
+  attackRange: 2
+  lostRange: 20
+  coolDownDuration: 1.5
+  currentOrder: 0
 --- !u!136 &1447809375
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1031,7 +1037,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1447809373}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -15.41, y: 0, z: 0}
+  m_LocalPosition: {x: -25.99, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1039,6 +1045,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &1447809381
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447809373}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1456685638
 GameObject:
   m_ObjectHideFlags: 0
@@ -1156,17 +1175,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 1456685638}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8f3345028207624a8ca072981476aff, type: 3}
+  m_Script: {fileID: 11500000, guid: 84764286c305fba469e1957c823aa65c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 200
-  nextWaypointDistance: 1
-  currentLife: 10
+  speed: 300
+  nextWaypointDistance: 0.2
+  currentLife: 0
   maxLife: 10
   damage: 5
   searchRange: 10
   attackRange: 2
-  coolDownDuration: 10
+  lostRange: 20
+  coolDownDuration: 1.5
+  currentOrder: 0
 --- !u!1 &1675292367
 GameObject:
   m_ObjectHideFlags: 0

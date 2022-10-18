@@ -291,7 +291,7 @@ public class GameRTSController : MonoBehaviour
                 position.x + (i % 10) * spaceBetweenUnits,
                 0,
                 position.z + j * spaceBetweenLigns);
-            u.generatePath(pos);
+            u.setDestination(pos);
             i++;
             if (i > unitByLign) { j++; }
         }

@@ -3,6 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
 
+public enum Order
+{
+    IDLE,
+    MOVE,
+    ATTACK
+}
+
 /// <summary>
 /// <para><c>Class Unit</c>, herits from <c>MonoBehaviour</c></para>
 /// Handle selected state and movement for a selectable and mobile unit
@@ -15,6 +22,10 @@ public class Unit : MonoBehaviour
     public float currentLife;
     public float maxLife = 10f;
     public float damage = 5f;
+    public float searchRange = 10f;
+    public float attackRange = 2f;
+    public float lostRange = 20f;
+    public float coolDownDuration = 10f;
 
     //Store path and state of the unit on the path
     protected Path path;
@@ -26,6 +37,9 @@ public class Unit : MonoBehaviour
     //Could be used to render a selected state
     //private SpriteRenderer m_SpriteRenderer;
     protected Unit target;
+    public Order currentOrder;
+    private int frameCounter;
+    private SphereCollider rangeCollider;
 
 
     protected void Awake()
@@ -35,20 +49,71 @@ public class Unit : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         setSelected(false);
         currentLife = maxLife;
+        currentOrder = Order.IDLE;
+        rangeCollider = GetComponent<SphereCollider>();
+        rangeCollider.radius = searchRange;
     }
 
     protected void FixedUpdate()
     {
-        //If there is no path, do nothing
-        //Debug.Log(path);
-        //Debug.Log(currentWaypoint);
-        if (path == null)
+        if(currentOrder == Order.IDLE && target != null)
         {
-            //Debug.Log("This bit is executed");
-            rb.velocity = Vector3.zero;
-            return;
-        } 
-        else
+            currentOrder = Order.ATTACK;
+        }
+        if(currentOrder == Order.ATTACK)
+        {
+            if (isTargetInRange())
+            {
+                //Debug.Log("Target in range");
+                onPathComplete();
+                if(frameCounter > coolDownDuration * 60)
+                {
+                    dealDamage(target);
+                }
+                else
+                {
+                    frameCounter++;
+                }
+            }
+            else
+            {
+                //Debug.Log("Target not in range");
+                if(path == null || !isTargetAtEndOfPath()) { generatePath(target.transform.position); }
+                moveAlongPath();
+            }
+        }
+        if(currentOrder == Order.MOVE)
+        {
+            moveAlongPath();
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Unit u = other.GetComponent<Unit>();
+        if (u != null && target == null)
+        {
+            target = u;
+            if (currentOrder != Order.MOVE)
+            {
+                currentOrder = Order.ATTACK;
+                generatePath(u.transform.position);
+            }
+
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, lostRange);
+    }
+
+    private void moveAlongPath()
+    {
+        if(path != null)
         {
             //If there is a path and our current waypoint is the last one, we stop
             if (currentWaypoint >= path.vectorPath.Count)
@@ -69,9 +134,6 @@ public class Unit : MonoBehaviour
                 currentWaypoint++;
             }
         }
-
-            
-        
     }
 
     /// <summary>
@@ -81,7 +143,7 @@ public class Unit : MonoBehaviour
     /// <param name="endPosition">Vector3 the final position the unit must reach</param>
     public void generatePath(Vector3 endPosition)
     {
-        Debug.Log("Calculating path");
+        //Debug.Log("Calculating path");
         seeker.StartPath(rb.position, endPosition, onPathCalcul);
     }
 
@@ -98,6 +160,7 @@ public class Unit : MonoBehaviour
     public void onTargetDeath()
     {
         target = null;
+        currentOrder = Order.IDLE;
     }
 
     /// <summary>
@@ -119,12 +182,19 @@ public class Unit : MonoBehaviour
         }
     }
 
+    public void setDestination(Vector3 dest)
+    {
+        currentOrder = Order.MOVE;
+        generatePath(dest);
+    }
+
     public void onPathComplete()
     {
-        Debug.Log("We reached end of path");
-        rb.velocity = Vector3.zero;
+        //Debug.Log("We reached end of path");
+        //rb.velocity = Vector3.zero;
         path = null;
         currentWaypoint = 0;
+        if(currentOrder == Order.MOVE) { currentOrder = Order.IDLE; }
     }
 
     /// <summary>
@@ -135,11 +205,11 @@ public class Unit : MonoBehaviour
     /// <param name="p">Path given by the Seeker</param>
     private void onPathCalcul(Path p)
     {
-        Debug.Log("Path calcul completed");
-        Debug.Log(p.error);
+        //Debug.Log("Path calcul completed");
+        //Debug.Log(p.error);
         if (p.error == false)
         {
-            Debug.Log("Path is assigned");
+            //Debug.Log("Path is assigned");
             path = p;
             currentWaypoint = 0;
         }
@@ -152,5 +222,48 @@ public class Unit : MonoBehaviour
         Destroy(this.gameObject);
     }
 
-    
+    private bool isTargetInRange()
+    {
+        if (target != null)
+        {
+            float targetDistance = Mathf.Abs(Vector3.Distance(transform.position, target.transform.position));
+            return targetDistance <= attackRange;
+        }
+        return false;
+    }
+    private bool isTargetLost()
+    {
+        if (target != null)
+        {
+            float targetDistance = Mathf.Abs(Vector3.Distance(transform.position, target.transform.position));
+            return targetDistance >= lostRange;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private bool isTargetAtEndOfPath()
+    {
+        if(path != null)
+        {
+            float d = Mathf.Abs(Vector3.Distance(target.transform.position,
+                path.vectorPath[path.vectorPath.Count - 1]));
+            return d < 2;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private void dealDamage(Unit u)
+    {
+        u.onTakeDamage(damage, this);
+        frameCounter = 0;
+    }
+
+
+
 }
