@@ -10,6 +10,7 @@ public class EnemyUnit : Unit
         if (u != null && target == null)
         {
             target = u;
+            target.addOpponent(this);
             if (currentOrder != Order.MOVE)
             {
                 currentOrder = Order.ATTACK;
