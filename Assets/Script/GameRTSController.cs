@@ -85,14 +85,23 @@ public class GameRTSController : MonoBehaviour
             else
             {
                 //If the start and end position are the same, we use a raycast to detect if the mouse was over a unit
-                RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out hit, 1000))
+                RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
+                if (hits.Length>0)
                 {
-                    if (hit.collider != null && hit.collider.GetComponent<AllieUnit>() != null)
+                    int i= 0;
+                    bool found = false;
+                    while(i<hits.Length && !found)
                     {
-                        AllieUnit u = hit.collider.GetComponent<AllieUnit>();
-                        selectUnit(u);
+                        RaycastHit hit = hits[i];
+                        if(hit.collider is CapsuleCollider &&
+                            hit.collider.GetComponent<AllieUnit>() != null)
+                        {
+                            found = true;
+                            AllieUnit pointedUnit = hit.collider.GetComponent<AllieUnit>();
+                            selectUnit(pointedUnit);
+                        }
+                        i++;
                     }
                 }
             }
@@ -136,9 +145,13 @@ public class GameRTSController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        //When the pyramid is generated, collider behave as if unit entered it.
-        AllieUnit u = other.GetComponent<AllieUnit>();
-        if (u != null) selectUnit(u);
+        if(other is CapsuleCollider)
+        {
+            //When the pyramid is generated, collider behave as if unit entered it.
+            AllieUnit u = other.GetComponent<AllieUnit>();
+            if (u != null) selectUnit(u);
+        }
+        
     }
 
     private void OnDrawGizmos()

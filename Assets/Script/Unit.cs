@@ -157,7 +157,7 @@ public abstract class Unit : MonoBehaviour
     /// <param name="endPosition">Vector3 the final position the unit must reach</param>
     public void generatePath(Vector3 endPosition)
     {
-        Debug.Log("Calculating path");
+        //Debug.Log("Calculating path");
         seeker.StartPath(rb.position, endPosition, onPathCalcul);
     }
 
@@ -226,7 +226,6 @@ public abstract class Unit : MonoBehaviour
 
     public void unSetTarget()
     {
-        target.removeOpponent(this);
         target = null;
         currentOrder = Order.IDLE;
     }
@@ -261,7 +260,7 @@ public abstract class Unit : MonoBehaviour
     /// <param name="p">Path given by the Seeker</param>
     private void onPathCalcul(Path p)
     {
-        Debug.Log("Path calcul completed");
+        //Debug.Log("Path calcul completed");
         //Debug.Log(p.error);
         if (p.error == false)
         {
