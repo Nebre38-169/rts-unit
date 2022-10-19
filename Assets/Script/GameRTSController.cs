@@ -35,7 +35,7 @@ public class GameRTSController : MonoBehaviour
     private MeshFilter pyramid;
     private MeshCollider selectionCollider;
     //Store selectionned unit
-    private List<Unit> selectedUnit;
+    private List<AllieUnit> selectedUnit;
     
 
     private void Awake()
@@ -49,7 +49,7 @@ public class GameRTSController : MonoBehaviour
         MeshRenderer render = GetComponent<MeshRenderer>();
         render.enabled = debug;
         
-        selectedUnit = new List<Unit>();
+        selectedUnit = new List<AllieUnit>();
         
         selectionPanel.GetComponent<Image>().enabled = false;
     }
@@ -84,34 +84,95 @@ public class GameRTSController : MonoBehaviour
             if (endPosition != startPosition) generateSelectionPyramid(startPosition, endPosition);
             else
             {
-                //If the start and end position are the same, we use a raycast to detect if the mouse was over a unit
-                RaycastHit hit;
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out hit, 1000))
-                {
-                    if (hit.collider != null && hit.collider.GetComponent<Unit>() != null)
-                    {
-                        Unit u = hit.collider.GetComponent<Unit>();
-                        selectUnit(u);
-                    }
-                }
+                //If the end and the start position are the same, we just check for a Allie Unit and set it selected
+                Unit u = isAUnitPointed(false);
+                if(u != null) { selectUnit((AllieUnit)u); }
             }
         }
 
-        //If the right click is pressed, a move order is given
+        //If the right click is pressed, a order is given
         if (Input.GetMouseButtonDown(1))
         {
             resetSelectionPyramid();
-            Vector3 dir = getMousePositionOnFloor();
-            calculatePosition(dir);
+            /*We look for an enemy unit. If there is, it is set as a target
+             * If there is no unit, we give the floor position to go to
+             */
+            Unit u = isAUnitPointed(true);
+            if(u != null)
+            {
+                foreach(Unit selectU in selectedUnit)
+                {
+                    selectU.setTarget(u);
+                }
+            }
+            else
+            {
+                Vector3 dir = getMousePositionOnFloor();
+                calculatePosition(dir);
+            }
+            
         }
+    }
+
+    /// <summary>
+    /// <para><c>Function isAUnitPointed</c></para>
+    /// Handle finding a unit on the mouse position.
+    /// It ignores spherecial collider and only use capsule collider to find unit.
+    /// Also, it only give the first found unit as unit should not stack up.
+    /// </summary>
+    /// <param name="enemy">A boolean used to indicate if we are looking for an Allie or an Enemy</param>
+    /// <returns></returns>
+    private Unit isAUnitPointed(bool enemy)
+    {
+        /*To avoid detecting spherical collider and not the pointed unit, we use RaycastAll to see every
+        * Collider in the way. We then loop on all them and get the first one that is a capsule collider
+        * which carries a AllieUnit script
+        */
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
+        if (hits.Length > 0)
+        {
+            int i = 0;
+            bool found = false;
+            while (i < hits.Length && !found)
+            {
+                RaycastHit hit = hits[i];
+                if (hit.collider is CapsuleCollider)
+                {
+                    if (enemy)
+                    {
+                        //We are looking for an enemey
+                        if(hit.collider.GetComponent<EnemyUnit>() != null)
+                        {
+                            found = true;
+                            return hit.collider.GetComponent<EnemyUnit>();
+                        }
+                    }
+                    else
+                    {
+                        //We are looking for an allie
+                        if (hit.collider.GetComponent<AllieUnit>() != null)
+                        {
+                            found = true;
+                            return hit.collider.GetComponent<AllieUnit>();
+                        }
+                    }
+                }
+                i++;
+            }
+        }
+        return null;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        //When the pyramid is generated, collider behave as if unit entered it.
-        Unit u = other.GetComponent<Unit>();
-        if (u != null) selectUnit(u);
+        if(other is CapsuleCollider)
+        {
+            //When the pyramid is generated, collider behave as if unit entered it.
+            AllieUnit u = other.GetComponent<AllieUnit>();
+            if (u != null) selectUnit(u);
+        }
+        
     }
 
     private void OnDrawGizmos()
@@ -217,10 +278,13 @@ public class GameRTSController : MonoBehaviour
     ///Handle unit selection by adding them to the selectedUnit list
     ///and set the unit as selected
     ///</summary>
-    private void selectUnit(Unit u)
+    private void selectUnit(AllieUnit u)
     {
-        u.setSelected(u);
-        selectedUnit.Add(u);
+        if (!selectedUnit.Contains(u))
+        {
+            u.setSelected(u);
+            selectedUnit.Add(u);
+        }
     }
     
     ///<summary>
@@ -285,13 +349,14 @@ public class GameRTSController : MonoBehaviour
     {
         int j = 0; //indice de ligne
         int i = 0; //indice de colonne
+        Debug.Log(selectedUnit.Count);
         foreach(Unit u in selectedUnit)
         {
             Vector3 pos = new Vector3(
                 position.x + (i % 10) * spaceBetweenUnits,
                 0,
                 position.z + j * spaceBetweenLigns);
-            u.generatePath(pos);
+            u.setDestination(pos);
             i++;
             if (i > unitByLign) { j++; }
         }
