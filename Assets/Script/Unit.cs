@@ -13,7 +13,8 @@ public enum Order
 
 /// <summary>
 /// <para><c>Class Unit</c>, herits from <c>MonoBehaviour</c></para>
-/// Handle selected state and movement for a selectable and mobile unit
+/// Handle order execution for move, attack and idle.
+/// Handle movement and fight, handle following a target and loosing the target
 /// </summary>
 public abstract class Unit : MonoBehaviour
 {
@@ -56,6 +57,7 @@ public abstract class Unit : MonoBehaviour
         setSelected(false);
         currentLife = maxLife;
         currentOrder = Order.IDLE;
+        //We set the sphere collider to the search range to lookout for enemy unit
         rangeCollider = GetComponent<SphereCollider>();
         rangeCollider.radius = searchRange;
         opponent = new List<Unit>();
@@ -106,6 +108,7 @@ public abstract class Unit : MonoBehaviour
                 }
             }
         }
+        //If the order is move, we just move
         if(currentOrder == Order.MOVE)
         {
             moveAlongPath();
@@ -118,36 +121,6 @@ public abstract class Unit : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, attackRange);
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, lostRange);
-    }
-
-    /// <summary>
-    /// <para><c>Function moveAlongPath</c></para>
-    /// Handle unit's movement along a precalculated path
-    /// If the unit has no path, do nothing
-    /// </summary>
-    private void moveAlongPath()
-    {
-        if(path != null)
-        {
-            //If there is a path and our current waypoint is the last one, we stop
-            if (currentWaypoint >= path.vectorPath.Count)
-            {
-                onPathComplete();
-                return;
-            }
-
-            //Calcul speed toward the next waypoint
-            Vector3 direction = (path.vectorPath[currentWaypoint] - rb.position).normalized;
-            Vector3 force = direction * speed * Time.deltaTime;
-            rb.velocity = new Vector3(force.x, 0, force.z);
-
-            //If we are close enough to the next waypoint, we increase the current waypoint counter
-            float distance = Vector3.Distance(rb.position, path.vectorPath[currentWaypoint]);
-            if (distance < nextWaypointDistance)
-            {
-                currentWaypoint++;
-            }
-        }
     }
 
     /// <summary>
@@ -224,12 +197,21 @@ public abstract class Unit : MonoBehaviour
         target.addOpponent(this);
     }
 
+    /// <summary>
+    /// <para><c>Function unSetTarget</c></para>
+    /// Used to reset the target selection and order to idle
+    /// </summary>
     public void unSetTarget()
     {
         target = null;
         currentOrder = Order.IDLE;
     }
 
+    /// <summary>
+    /// <para><c>Function onPathComplete</c></para>
+    /// Used when the destionation is reached or the unit is in attack range of the target.
+    /// Reset the velocity and path, and if the order was to move, the unit goes to idle.
+    /// </summary>
     public void onPathComplete()
     {
         //Debug.Log("We reached end of path");
@@ -239,16 +221,58 @@ public abstract class Unit : MonoBehaviour
         if(currentOrder == Order.MOVE) { currentOrder = Order.IDLE; }
     }
 
+    /// <summary>
+    /// <para><c>Function addOpponent</c></para>
+    /// When unit A is selected as a target by unit B, unit A add unit B in is oppenent.
+    /// It uses to warn oppenent of the death of their target, to avoid pointing to a non-existing object
+    /// </summary>
+    /// <param name="u">The opponent</param>
     public void addOpponent(Unit u)
     {
         opponent.Add(u);
     }
 
+    /// <summary>
+    /// <para><c>Function removeOpponent</c></para>
+    /// Handle removing an opponent from the list. 
+    /// When an opponent loose its target, we remove the opponent from the list
+    /// </summary>
+    /// <param name="u">The opponent</param>
     public void removeOpponent(Unit u)
     {
         if (opponent.Contains(u))
         {
             opponent.Remove(u);
+        }
+    }
+
+    /// <summary>
+    /// <para><c>Function moveAlongPath</c></para>
+    /// Handle unit's movement along a precalculated path
+    /// If the unit has no path, do nothing
+    /// </summary>
+    private void moveAlongPath()
+    {
+        if (path != null)
+        {
+            //If there is a path and our current waypoint is the last one, we stop
+            if (currentWaypoint >= path.vectorPath.Count)
+            {
+                onPathComplete();
+                return;
+            }
+
+            //Calcul speed toward the next waypoint
+            Vector3 direction = (path.vectorPath[currentWaypoint] - rb.position).normalized;
+            Vector3 force = direction * speed * Time.deltaTime;
+            rb.velocity = new Vector3(force.x, 0, force.z);
+
+            //If we are close enough to the next waypoint, we increase the current waypoint counter
+            float distance = Vector3.Distance(rb.position, path.vectorPath[currentWaypoint]);
+            if (distance < nextWaypointDistance)
+            {
+                currentWaypoint++;
+            }
         }
     }
 
@@ -270,6 +294,11 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// <para><c>Function onDeath</c></para>
+    /// Trigger when the unit life goes below 0.
+    /// Warn oppenent that this unit no longer exist
+    /// </summary>
     private void onDeath()
     {
         foreach(Unit u in opponent)
@@ -279,6 +308,11 @@ public abstract class Unit : MonoBehaviour
         Destroy(this.gameObject);
     }
 
+    /// <summary>
+    /// <para><c>Function isTargetInRange</c></para>
+    /// Indicates wether the target is in attack range or not
+    /// </summary>
+    /// <returns>True if the target is in range, False other wise or if there is no target</returns>
     private bool isTargetInRange()
     {
         if (target != null)
@@ -288,6 +322,12 @@ public abstract class Unit : MonoBehaviour
         }
         return false;
     }
+
+    /// <summary>
+    /// <para><c>Function isTargetLost</c></para>
+    /// Indicates wether the target is further than the lost range
+    /// </summary>
+    /// <returns>True if the target is lost, false otherwise and if there is no target</returns>
     private bool isTargetLost()
     {
         if (target != null)
@@ -301,6 +341,12 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// <para><c>Function isTargetAtEndOfPath</c></para>
+    /// Check if the target is still at the end of the path
+    /// </summary>
+    /// <returns>True if the target is within a cirlce of diameter 2 from the end of the path,
+    /// false otherwise or if there is no path</returns>
     private bool isTargetAtEndOfPath()
     {
         if(path != null)
@@ -315,6 +361,12 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// <para><c>Function targetVerification</c></para>
+    /// Check if the target still exist
+    /// (Not sure it is usefull)
+    /// </summary>
+    /// <returns>True if the target still exist, false and unSetTarget otherwise</returns>
     private bool targetVerification()
     {
         if(target.gameObject == null) 
@@ -325,6 +377,11 @@ public abstract class Unit : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// <para><c>Function dealDamage</c></para>
+    /// Handle dealing damage to a unit.
+    /// </summary>
+    /// <param name="u">The target of the attack</param>
     private void dealDamage(Unit u)
     {
         u.onTakeDamage(damage);

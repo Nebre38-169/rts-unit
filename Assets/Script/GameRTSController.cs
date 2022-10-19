@@ -84,34 +84,20 @@ public class GameRTSController : MonoBehaviour
             if (endPosition != startPosition) generateSelectionPyramid(startPosition, endPosition);
             else
             {
-                //If the start and end position are the same, we use a raycast to detect if the mouse was over a unit
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
-                if (hits.Length>0)
-                {
-                    int i= 0;
-                    bool found = false;
-                    while(i<hits.Length && !found)
-                    {
-                        RaycastHit hit = hits[i];
-                        if(hit.collider is CapsuleCollider &&
-                            hit.collider.GetComponent<AllieUnit>() != null)
-                        {
-                            found = true;
-                            AllieUnit pointedUnit = hit.collider.GetComponent<AllieUnit>();
-                            selectUnit(pointedUnit);
-                        }
-                        i++;
-                    }
-                }
+                //If the end and the start position are the same, we just check for a Allie Unit and set it selected
+                Unit u = isAUnitPointed(false);
+                if(u != null) { selectUnit((AllieUnit)u); }
             }
         }
 
-        //If the right click is pressed, a move order is given
+        //If the right click is pressed, a order is given
         if (Input.GetMouseButtonDown(1))
         {
             resetSelectionPyramid();
-            Unit u = isAUnitPointed();
+            /*We look for an enemy unit. If there is, it is set as a target
+             * If there is no unit, we give the floor position to go to
+             */
+            Unit u = isAUnitPointed(true);
             if(u != null)
             {
                 foreach(Unit selectU in selectedUnit)
@@ -128,16 +114,51 @@ public class GameRTSController : MonoBehaviour
         }
     }
 
-    private Unit isAUnitPointed()
+    /// <summary>
+    /// <para><c>Function isAUnitPointed</c></para>
+    /// Handle finding a unit on the mouse position.
+    /// It ignores spherecial collider and only use capsule collider to find unit.
+    /// Also, it only give the first found unit as unit should not stack up.
+    /// </summary>
+    /// <param name="enemy">A boolean used to indicate if we are looking for an Allie or an Enemy</param>
+    /// <returns></returns>
+    private Unit isAUnitPointed(bool enemy)
     {
-        
+        /*To avoid detecting spherical collider and not the pointed unit, we use RaycastAll to see every
+        * Collider in the way. We then loop on all them and get the first one that is a capsule collider
+        * which carries a AllieUnit script
+        */
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        if(Physics.Raycast(ray, out hit, 1000f))
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
+        if (hits.Length > 0)
         {
-            if (hit.collider != null && hit.collider.GetComponent<EnemyUnit>() != null)
+            int i = 0;
+            bool found = false;
+            while (i < hits.Length && !found)
             {
-                return hit.collider.GetComponent<EnemyUnit>();
+                RaycastHit hit = hits[i];
+                if (hit.collider is CapsuleCollider)
+                {
+                    if (enemy)
+                    {
+                        //We are looking for an enemey
+                        if(hit.collider.GetComponent<EnemyUnit>() != null)
+                        {
+                            found = true;
+                            return hit.collider.GetComponent<EnemyUnit>();
+                        }
+                    }
+                    else
+                    {
+                        //We are looking for an allie
+                        if (hit.collider.GetComponent<AllieUnit>() != null)
+                        {
+                            found = true;
+                            return hit.collider.GetComponent<AllieUnit>();
+                        }
+                    }
+                }
+                i++;
             }
         }
         return null;
