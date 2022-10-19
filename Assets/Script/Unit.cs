@@ -8,7 +8,9 @@ public enum Order
     IDLE,
     MOVE,
     ATTACK,
-    FORCEATTACK
+    FORCEATTACK,
+    HARVEST,
+    BRING
 }
 
 /// <summary>
@@ -30,6 +32,9 @@ public abstract class Unit : MonoBehaviour
     public float attackRange = 2f; //Within this range, an enemy will take damage
     public float lostRange = 20f; //Outside this range, a target will be lost and focused will be lost
     public float coolDownDuration = 10f; //Time between two attacks
+    public float harvestRange = 3f;
+    public float harvestCoolDown = 5f;
+    public float maxLoad = 10f;
 
     //Store path and state of the unit on the path
     protected Path path;
@@ -47,6 +52,10 @@ public abstract class Unit : MonoBehaviour
     private SphereCollider rangeCollider;
     //Used to store opponent (unit that store this instance as a target)
     private List<Unit> opponent;
+
+    private Ressource targetRessource;
+    private Depot targetDepot;
+    private float currentLoad = 0f;
 
 
     protected void Awake()
@@ -112,6 +121,50 @@ public abstract class Unit : MonoBehaviour
         if(currentOrder == Order.MOVE)
         {
             moveAlongPath();
+        }
+        if(currentOrder == Order.HARVEST)
+        {
+            if (isRessourceInRange())
+            {
+                onPathComplete();
+                if(frameCounter > harvestCoolDown * 60)
+                {
+                    harvest(targetRessource);
+                }
+                else
+                {
+                    frameCounter++;
+                }
+            }
+            else
+            {
+                if(path == null) { generatePath(targetRessource.transform.position); }
+                moveAlongPath();
+            }
+        }
+        if(currentOrder == Order.BRING)
+        {
+            if(targetDepot == null)
+            {
+                targetDepot = getClosestDepot();
+            }
+            if (isDepotInRange())
+            {
+                onPathComplete();
+                if (frameCounter > harvestCoolDown * 60)
+                {
+                    unload(targetDepot);
+                }
+                else
+                {
+                    frameCounter++;
+                }
+            }
+            else
+            {
+                if (path == null) { generatePath(targetDepot.transform.position); }
+                moveAlongPath();
+            }
         }
     }
 
@@ -207,6 +260,13 @@ public abstract class Unit : MonoBehaviour
         currentOrder = Order.IDLE;
     }
 
+    public void setTargetRessource(Ressource r)
+    {
+        targetRessource = r;
+        r.addHarvester(this);
+        currentOrder = Order.HARVEST;
+    }
+
     /// <summary>
     /// <para><c>Function onPathComplete</c></para>
     /// Used when the destionation is reached or the unit is in attack range of the target.
@@ -244,6 +304,13 @@ public abstract class Unit : MonoBehaviour
         {
             opponent.Remove(u);
         }
+    }
+
+    public void onRessourceEmpty()
+    {
+        targetRessource = null;
+        currentOrder = Order.IDLE;
+        //Must add a logic to find the next ressource to harvest
     }
 
     /// <summary>
@@ -323,6 +390,27 @@ public abstract class Unit : MonoBehaviour
         return false;
     }
 
+    private bool isRessourceInRange()
+    {
+        if(targetRessource != null)
+        {
+            float targetDistance = Mathf.Abs(Vector3.Distance(transform.position, targetRessource.transform.position));
+            return targetDistance < harvestRange;
+        }
+        return false;
+    }
+
+    //Need to change this logic, as Depot and ressource could have different size, we must use a collider.
+    private bool isDepotInRange()
+    {
+        if (targetDepot != null)
+        {
+            float targetDistance = Mathf.Abs(Vector3.Distance(transform.position, targetDepot.transform.position));
+            return targetDistance < 8;
+        }
+        return false;
+    }
+
     /// <summary>
     /// <para><c>Function isTargetLost</c></para>
     /// Indicates wether the target is further than the lost range
@@ -388,6 +476,60 @@ public abstract class Unit : MonoBehaviour
         frameCounter = 0;
     }
 
+    private void harvest(Ressource r)
+    {
+        float estimatedQuantity = r.getGivenQuantity();
+        if(currentLoad + estimatedQuantity > maxLoad)
+        {
+            estimatedQuantity = maxLoad - currentLoad;
+        }
+        float quantity = r.onHarvest(this, estimatedQuantity);
+        currentLoad += quantity;
+        frameCounter = 0;
+        if(currentLoad >= maxLoad)
+        {
+            currentOrder = Order.BRING;
+        }
+    }
 
+    private void unload(Depot d)
+    {
+        currentLoad -= maxLoad / 3;
+        d.onUnLoad(this,maxLoad / 3);
+        if(currentLoad <= 0)
+        {
+            currentLoad = 0;
+            currentOrder = Order.HARVEST;
+        }
+        frameCounter = 0;
+    }
+
+    private Depot getClosestDepot()
+    {
+        Depot[] depotList = GameObject.FindObjectsOfType<Depot>();
+        if(depotList.Length <= 0)
+        {
+            return null;
+        }
+        else if(depotList.Length == 1)
+        {
+            return depotList[0];
+        }
+        else
+        {
+            float closesDistance = Mathf.Infinity;
+            Depot candidate = depotList[0];
+            foreach(Depot depot in depotList)
+            {
+                float dist = Mathf.Abs(Vector3.Distance(transform.position, depot.transform.position));
+                if (dist < closesDistance)
+                {
+                    closesDistance = dist;
+                    candidate = depot;
+                }
+            }
+            return candidate;
+        }
+    }
 
 }
