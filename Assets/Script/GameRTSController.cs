@@ -110,7 +110,7 @@ public class GameRTSController : MonoBehaviour
             {
                 foreach(Unit selectU in selectedUnit)
                 {
-                    selectU.setTargetRessource(r);
+                    selectU.setTargetRessource(r,true);
                 }
             }
             else

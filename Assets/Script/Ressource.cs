@@ -18,9 +18,11 @@ public class Ressource : MonoBehaviour
 
     private void onRessourceEmpty()
     {
+        Ressource remplacement = getClosestRessource();
+        Debug.Log(remplacement);
         foreach(Unit unit in harvester)
         {
-            unit.onRessourceEmpty();
+            unit.onRessourceEmpty(remplacement);
         }
         Destroy(this.gameObject);
     }
@@ -45,7 +47,7 @@ public class Ressource : MonoBehaviour
     }
     public float onHarvest(Unit u, float quantity)
     {
-        Debug.Log(quantity);
+        //Debug.Log(quantity);
         if(quantity > givenQuantity)
         {
             quantity = givenQuantity;
@@ -59,8 +61,38 @@ public class Ressource : MonoBehaviour
         {
             onRessourceEmpty();
         }
-        Debug.Log(currentQuantity);
+        //Debug.Log(currentQuantity);
         return quantity;
+    }
+
+    private Ressource getClosestRessource()
+    {
+        Ressource[] ressourceArray = GameObject.FindObjectsOfType<Ressource>();
+        List<Ressource> ressourceList = new List<Ressource>(ressourceArray);
+        if (ressourceList.Contains(this)) { ressourceList.Remove(this); }
+        if(ressourceList.Count <= 0)
+        {
+            return null;
+        }
+        else if(ressourceList.Count == 1)
+        {
+            return ressourceList[0];
+        }
+        else
+        {
+            float closesDistance = Mathf.Infinity;
+            Ressource candidate = ressourceList[0];
+            foreach (Ressource depot in ressourceList)
+            {
+                float dist = Mathf.Abs(Vector3.Distance(transform.position, depot.transform.position));
+                if (dist < closesDistance)
+                {
+                    closesDistance = dist;
+                    candidate = depot;
+                }
+            }
+            return candidate;
+        }
     }
 
 }

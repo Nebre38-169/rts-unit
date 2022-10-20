@@ -53,6 +53,7 @@ public abstract class Unit : MonoBehaviour
     //Used to store opponent (unit that store this instance as a target)
     private List<Unit> opponent;
 
+    private RessourceTrigger ressourceDetector;
     private Ressource targetRessource;
     private Depot targetDepot;
     private float currentLoad = 0f;
@@ -70,6 +71,11 @@ public abstract class Unit : MonoBehaviour
         rangeCollider = GetComponent<SphereCollider>();
         rangeCollider.radius = searchRange;
         opponent = new List<Unit>();
+        ressourceDetector = gameObject.GetComponentInChildren<RessourceTrigger>();
+        if(ressourceDetector == null)
+        {
+            throw new System.Exception("Missing ressourec detector on unit " + gameObject.name);
+        }
     }
 
     protected void FixedUpdate()
@@ -260,11 +266,11 @@ public abstract class Unit : MonoBehaviour
         currentOrder = Order.IDLE;
     }
 
-    public void setTargetRessource(Ressource r)
+    public void setTargetRessource(Ressource r, bool order)
     {
         targetRessource = r;
         r.addHarvester(this);
-        currentOrder = Order.HARVEST;
+        if (order) { currentOrder = Order.HARVEST; }
     }
 
     /// <summary>
@@ -306,11 +312,18 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
-    public void onRessourceEmpty()
+    public void onRessourceEmpty(Ressource remplacement)
     {
-        targetRessource = null;
-        currentOrder = Order.IDLE;
-        //Must add a logic to find the next ressource to harvest
+        Debug.Log(remplacement);
+        if(remplacement != null)
+        {
+            setTargetRessource(remplacement, false);
+        }
+        else
+        {
+            targetRessource = null;
+            currentOrder = Order.IDLE;
+        }
     }
 
     /// <summary>
@@ -394,8 +407,7 @@ public abstract class Unit : MonoBehaviour
     {
         if(targetRessource != null)
         {
-            float targetDistance = Mathf.Abs(Vector3.Distance(transform.position, targetRessource.transform.position));
-            return targetDistance < harvestRange;
+            return ressourceDetector.isTargetRessourceInRange(targetRessource);
         }
         return false;
     }
@@ -405,8 +417,7 @@ public abstract class Unit : MonoBehaviour
     {
         if (targetDepot != null)
         {
-            float targetDistance = Mathf.Abs(Vector3.Distance(transform.position, targetDepot.transform.position));
-            return targetDistance < 8;
+            return ressourceDetector.isTargetDepotInRange(targetDepot);
         }
         return false;
     }
