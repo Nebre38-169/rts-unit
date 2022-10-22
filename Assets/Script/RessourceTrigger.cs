@@ -4,16 +4,16 @@ using UnityEngine;
 
 public class RessourceTrigger : MonoBehaviour
 {
-    private List<Ressource> ressourcesInRange;
+    private List<RessourceSource> ressourcesInRange;
     private List<Depot> depotInRange;
 
     private void Awake()
     {
-        ressourcesInRange = new List<Ressource>();
+        ressourcesInRange = new List<RessourceSource>();
         depotInRange = new List<Depot>();
     }
 
-    public bool isTargetRessourceInRange(Ressource target)
+    public bool isTargetRessourceInRange(RessourceSource target)
     {
         return ressourcesInRange.Contains(target);
     }
@@ -25,7 +25,7 @@ public class RessourceTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Ressource r = other.GetComponent<Ressource>();
+        RessourceSource r = other.GetComponent<RessourceSource>();
         Depot d = other.GetComponent<Depot>();
         if (r != null)
         {
@@ -45,7 +45,7 @@ public class RessourceTrigger : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        Ressource r = other.GetComponent<Ressource>();
+        RessourceSource r = other.GetComponent<RessourceSource>();
         Depot d = other.GetComponent<Depot>();
         if (r != null)
         {

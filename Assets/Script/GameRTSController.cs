@@ -98,7 +98,7 @@ public class GameRTSController : MonoBehaviour
              * If there is no unit, we give the floor position to go to
              */
             Unit u = isAUnitPointed(true);
-            Ressource r = isARessourcePointed();
+            RessourceSource r = isARessourcePointed();
             if(u != null)
             {
                 foreach(Unit selectU in selectedUnit)
@@ -209,7 +209,7 @@ public class GameRTSController : MonoBehaviour
         return null;
     }
 
-    private Ressource isARessourcePointed()
+    private RessourceSource isARessourcePointed()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
@@ -219,7 +219,7 @@ public class GameRTSController : MonoBehaviour
             bool found = false;
             while (i < hits.Length && !found)
             {
-                Ressource r = hits[i].collider.GetComponent<Ressource>();
+                RessourceSource r = hits[i].collider.GetComponent<RessourceSource>();
                 if (r)
                 {
                     found = true;

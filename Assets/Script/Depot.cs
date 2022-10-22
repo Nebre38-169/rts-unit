@@ -4,12 +4,22 @@ using UnityEngine;
 
 public class Depot : MonoBehaviour
 {
-    private float currentQuantity;
+    public List<Ressource> storedRessource;
+    private List<float> currentQuantity;
     private List<Unit> harvester;
 
     private void Awake()
     {
         harvester = new List<Unit>();
+        foreach(Ressource ressource in storedRessource)
+        {
+            currentQuantity.Add(0f);
+        }
+    }
+
+    public bool isRessourceUnloadable(Ressource r)
+    {
+        return storedRessource.Contains(r);
     }
 
     public void addHarvester(Unit u)
@@ -25,9 +35,14 @@ public class Depot : MonoBehaviour
         }
     }
 
-    public void onUnLoad(Unit u, float quantity)
+    public bool onUnLoad(Ressource r, float quantity)
     {
-        currentQuantity += quantity;
-        Debug.Log(currentQuantity);
+        int index = storedRessource.IndexOf(r);
+        if(index > -1)
+        {
+            currentQuantity[index] += quantity;
+            return true;
+        }
+        return false;
     }
 }

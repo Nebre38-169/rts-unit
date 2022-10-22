@@ -54,6 +54,7 @@ public abstract class Unit : MonoBehaviour
     private List<Unit> opponent;
 
     private RessourceTrigger ressourceDetector;
+    private RessourceSource targetSource;
     private Ressource targetRessource;
     private Depot targetDepot;
     private float currentLoad = 0f;
@@ -135,7 +136,7 @@ public abstract class Unit : MonoBehaviour
                 onPathComplete();
                 if(frameCounter > harvestCoolDown * 60)
                 {
-                    harvest(targetRessource);
+                    harvest(targetSource);
                 }
                 else
                 {
@@ -144,7 +145,7 @@ public abstract class Unit : MonoBehaviour
             }
             else
             {
-                if(path == null) { generatePath(targetRessource.transform.position); }
+                if(path == null) { generatePath(targetSource.transform.position); }
                 moveAlongPath();
             }
         }
@@ -266,11 +267,38 @@ public abstract class Unit : MonoBehaviour
         currentOrder = Order.IDLE;
     }
 
-    public void setTargetRessource(Ressource r, bool order)
+    public bool setTargetRessource(RessourceSource r, bool order)
     {
-        targetRessource = r;
-        r.addHarvester(this);
-        if (order) { currentOrder = Order.HARVEST; }
+        if(targetRessource == null)
+        {
+            targetSource = r;
+            targetRessource = r.ressource;
+            r.addHarvester(this);
+            if (order) { currentOrder = Order.HARVEST; }
+            return true;
+        }
+        else
+        {
+            if(targetRessource == r.ressource)
+            {
+                targetSource = r;
+                r.addHarvester(this);
+                if (order) { currentOrder = Order.HARVEST; }
+                return true;
+            }
+            else if(currentLoad >0 )
+            {
+                return false;
+            }
+            else
+            {
+                targetRessource = r.ressource;
+                targetSource = r;
+                r.addHarvester(this);
+                if (order) { currentOrder = Order.HARVEST; }
+                return true;
+            }
+        }
     }
 
     /// <summary>
@@ -312,7 +340,7 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
-    public void onRessourceEmpty(Ressource remplacement)
+    public void onRessourceEmpty(RessourceSource remplacement)
     {
         Debug.Log(remplacement);
         if(remplacement != null)
@@ -321,7 +349,7 @@ public abstract class Unit : MonoBehaviour
         }
         else
         {
-            targetRessource = null;
+            targetSource = null;
             currentOrder = Order.IDLE;
         }
     }
@@ -405,9 +433,9 @@ public abstract class Unit : MonoBehaviour
 
     private bool isRessourceInRange()
     {
-        if(targetRessource != null)
+        if(targetSource != null)
         {
-            return ressourceDetector.isTargetRessourceInRange(targetRessource);
+            return ressourceDetector.isTargetRessourceInRange(targetSource);
         }
         return false;
     }
@@ -487,15 +515,22 @@ public abstract class Unit : MonoBehaviour
         frameCounter = 0;
     }
 
-    private void harvest(Ressource r)
+    private int estimateQuantity()
     {
-        float estimatedQuantity = r.getGivenQuantity();
-        if(currentLoad + estimatedQuantity > maxLoad)
+        float diff = maxLoad - currentLoad;
+        return Mathf.RoundToInt(diff / targetRessource.weight);
+    }
+
+    private void harvest(RessourceSource r)
+    {
+        int estimatedQuantity = estimateQuantity();
+        if(estimatedQuantity == 0)
         {
-            estimatedQuantity = maxLoad - currentLoad;
+            currentOrder = Order.BRING;
+            return;
         }
-        float quantity = r.onHarvest(this, estimatedQuantity);
-        currentLoad += quantity;
+        int quantity = r.onHarvest(this, estimatedQuantity);
+        currentLoad += quantity*r.ressource.weight;
         frameCounter = 0;
         if(currentLoad >= maxLoad)
         {
@@ -506,7 +541,7 @@ public abstract class Unit : MonoBehaviour
     private void unload(Depot d)
     {
         currentLoad -= maxLoad / 3;
-        d.onUnLoad(this,maxLoad / 3);
+        d.onUnLoad(targetRessource,maxLoad / 3);
         if(currentLoad <= 0)
         {
             currentLoad = 0;
@@ -517,12 +552,17 @@ public abstract class Unit : MonoBehaviour
 
     private Depot getClosestDepot()
     {
-        Depot[] depotList = GameObject.FindObjectsOfType<Depot>();
-        if(depotList.Length <= 0)
+        Depot[] depotArray = GameObject.FindObjectsOfType<Depot>();
+        List<Depot> depotList = new List<Depot>();
+        for(int i = 0; i < depotArray.Length; i++)
+        {
+            if (depotArray[i].isRessourceUnloadable(targetRessource)) { depotList.Add(depotArray[i]); }
+        }
+        if(depotList.Count <= 0)
         {
             return null;
         }
-        else if(depotList.Length == 1)
+        else if(depotList.Count == 1)
         {
             return depotList[0];
         }

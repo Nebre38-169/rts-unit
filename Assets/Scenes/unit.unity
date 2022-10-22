@@ -384,8 +384,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f436cc8ad1afe34fb9527515076eba5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxQuantity: 1
-  givenQuantity: 1
+  maxQuantity: 10
+  givenQuantity: 5
+  ressource: {fileID: 11400000, guid: f076fb07077cb2447bec941049dbed71, type: 2}
 --- !u!65 &33453011
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -505,6 +506,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ca60adcfd298a340b1b6d0c48d74e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  storedRessource:
+  - {fileID: 11400000, guid: f076fb07077cb2447bec941049dbed71, type: 2}
 --- !u!4 &131053126
 Transform:
   m_ObjectHideFlags: 0
@@ -568,8 +571,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f436cc8ad1afe34fb9527515076eba5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxQuantity: 100
-  givenQuantity: 5
+  maxQuantity: 10
+  givenQuantity: 0
+  ressource: {fileID: 0}
 --- !u!54 &319467362
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1938,8 +1942,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f436cc8ad1afe34fb9527515076eba5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxQuantity: 1
-  givenQuantity: 1
+  maxQuantity: 10
+  givenQuantity: 0
+  ressource: {fileID: 0}
 --- !u!54 &1546263062
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2279,8 +2284,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f436cc8ad1afe34fb9527515076eba5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxQuantity: 1
-  givenQuantity: 1
+  maxQuantity: 10
+  givenQuantity: 0
+  ressource: {fileID: 0}
 --- !u!54 &1776637713
 Rigidbody:
   m_ObjectHideFlags: 0
