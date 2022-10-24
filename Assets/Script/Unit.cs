@@ -37,6 +37,7 @@ public abstract class Unit : MonoBehaviour
     public float harvestRange = 3f;
     public float harvestCoolDown = 5f;
     public float maxLoad = 10f;
+    public int unloadPacket = 5; //Define the quantity of ressource the unit can unload
 
     //Store path and state of the unit on the path
     protected Path path;
@@ -60,6 +61,7 @@ public abstract class Unit : MonoBehaviour
     private RessourceSource targetSource; //Store the selected source
     private Ressource targetRessource; //Store the selected ressource (given by the source)
     private Depot targetDepot; //Store the place where ressource can be offloaded
+    
     private float currentLoad = 0f; //Indicates the current load
 
 
@@ -566,8 +568,8 @@ public abstract class Unit : MonoBehaviour
 
     private void unload(Depot d)
     {
-        currentLoad -= maxLoad / 3;
-        d.onUnLoad(targetRessource,maxLoad / 3);
+        currentLoad -= unloadPacket * targetRessource.weight;
+        d.onUnLoad(targetRessource,unloadPacket);
         debugMessage("Unloaded");
         if (currentLoad <= 0)
         {

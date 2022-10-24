@@ -7,6 +7,8 @@ public class Ressource: ScriptableObject
 {
     public string ressourceName;
     public float weight;
+    public Sprite icon;
+
     public Ressource(string name, float w)
     {
         ressourceName = name;

@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ressourceName: wood
   weight: 1.2
+  icon: {fileID: 21300000, guid: 8f0fb322b2376e64c982c89e99926f17, type: 3}
