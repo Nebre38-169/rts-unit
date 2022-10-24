@@ -7,7 +7,7 @@ public class Depot : MonoBehaviour
     public List<Ressource> storedRessource;
     [SerializeField] public RessourceManager manager;
 
-    private List<int> currentQuantity;
+    public List<int> currentQuantity;
     private List<Unit> harvester;
 
     private void Awake()
@@ -18,6 +18,11 @@ public class Depot : MonoBehaviour
         {
             currentQuantity.Add(0);
         }
+        
+    }
+
+    private void Start()
+    {
         manager.addDepot(this);
     }
 
