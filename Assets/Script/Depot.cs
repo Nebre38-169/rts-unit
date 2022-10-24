@@ -11,6 +11,7 @@ public class Depot : MonoBehaviour
     private void Awake()
     {
         harvester = new List<Unit>();
+        currentQuantity = new List<float>();
         foreach(Ressource ressource in storedRessource)
         {
             currentQuantity.Add(0f);
