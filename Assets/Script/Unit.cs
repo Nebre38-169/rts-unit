@@ -20,6 +20,8 @@ public enum Order
 /// </summary>
 public abstract class Unit : MonoBehaviour
 {
+    public bool debug = false;
+
     public float speed = 5f;
     //This argument is use to smooth the path
     public float nextWaypointDistance = 0.2f;
@@ -53,11 +55,12 @@ public abstract class Unit : MonoBehaviour
     //Used to store opponent (unit that store this instance as a target)
     private List<Unit> opponent;
 
-    private RessourceTrigger ressourceDetector;
-    private RessourceSource targetSource;
-    private Ressource targetRessource;
-    private Depot targetDepot;
-    private float currentLoad = 0f;
+    //Used for ressource harvesting
+    private RessourceTrigger ressourceDetector; //Must be a child gameObject 
+    private RessourceSource targetSource; //Store the selected source
+    private Ressource targetRessource; //Store the selected ressource (given by the source)
+    private Depot targetDepot; //Store the place where ressource can be offloaded
+    private float currentLoad = 0f; //Indicates the current load
 
 
     protected void Awake()
@@ -81,6 +84,11 @@ public abstract class Unit : MonoBehaviour
 
     protected void FixedUpdate()
     {
+        if (debug) 
+        {
+            Debug.Log("Unit " + gameObject.name);
+            Debug.Log("Current order : " + currentOrder); 
+        }
         //If the unit is idle and it has picked a target, it goes into combat mode
         if(currentOrder == Order.IDLE && target != null)
         {
@@ -96,6 +104,7 @@ public abstract class Unit : MonoBehaviour
                 if (isTargetInRange())
                 {
                     //If the unit is in attack range, we assume the path is completed
+                    if (debug) { Debug.Log("Target in range, proceding to attack"); }
                     onPathComplete();
                     if (frameCounter > coolDownDuration * 60)
                     {
@@ -109,6 +118,7 @@ public abstract class Unit : MonoBehaviour
                 else if (isTargetLost() && currentOrder != Order.FORCEATTACK)
                 {
                     //If the target is lost, the unit lose focus and idle
+                    if (debug) { Debug.Log("Lost target."); }
                     unSetTarget();
                     onPathComplete();
                     currentOrder = Order.IDLE;
@@ -119,6 +129,7 @@ public abstract class Unit : MonoBehaviour
                      * If it's true, we recalculate the path to the target
                      * Else we move along the path
                      */
+                    if (debug) { Debug.Log("On way to target"); }
                     if (path == null || !isTargetAtEndOfPath()) { generatePath(target.transform.position); }
                     moveAlongPath();
                 }
@@ -133,6 +144,7 @@ public abstract class Unit : MonoBehaviour
         {
             if (isRessourceInRange())
             {
+                if (debug) { Debug.Log("Ressource in range"); }
                 onPathComplete();
                 if(frameCounter > harvestCoolDown * 60)
                 {
@@ -145,7 +157,8 @@ public abstract class Unit : MonoBehaviour
             }
             else
             {
-                if(path == null) { generatePath(targetSource.transform.position); }
+                if (debug) { Debug.Log("On way to ressource"); }
+                if (path == null) { generatePath(targetSource.transform.position); }
                 moveAlongPath();
             }
         }
@@ -153,10 +166,12 @@ public abstract class Unit : MonoBehaviour
         {
             if(targetDepot == null)
             {
+                if (debug) { Debug.Log("Looking for a depot"); }
                 targetDepot = getClosestDepot();
             }
             if (isDepotInRange())
             {
+                if (debug) { Debug.Log("Depot in range"); }
                 onPathComplete();
                 if (frameCounter > harvestCoolDown * 60)
                 {
@@ -169,6 +184,7 @@ public abstract class Unit : MonoBehaviour
             }
             else
             {
+                if (debug) { Debug.Log("On way to depot"); }
                 if (path == null) { generatePath(targetDepot.transform.position); }
                 moveAlongPath();
             }
@@ -203,7 +219,7 @@ public abstract class Unit : MonoBehaviour
     public void onTakeDamage(float d)
     {
         currentLife -= d;
-        Debug.Log(gameObject.name + " toke " + d + " damage(s)");
+        if (debug) { Debug.Log(gameObject.name + " toke " + d + " damage(s)"); }
         if (currentLife <= 0) {
             onDeath(); 
         }
@@ -219,12 +235,12 @@ public abstract class Unit : MonoBehaviour
     {
         if (selected)
         {
-            Debug.Log(gameObject.name + " is selected");
+            if (debug) { Debug.Log(gameObject.name + " is selected"); }
             //m_SpriteRenderer.color = Color.blue;
         }
         else
         {
-            Debug.Log(gameObject.name + " is unselected");
+            if (debug) { Debug.Log(gameObject.name + " is unselected"); }
             //m_SpriteRenderer.color = Color.white;
         }
     }
@@ -238,6 +254,7 @@ public abstract class Unit : MonoBehaviour
     /// <param name="dest">Vector3 of the final destination</param>
     public void setDestination(Vector3 dest)
     {
+        if (debug) { Debug.Log("Destionation set"); }
         currentOrder = Order.MOVE;
         generatePath(dest);
     }
@@ -251,7 +268,7 @@ public abstract class Unit : MonoBehaviour
     /// <param name="u">The target setted either by the GameRTSController(Player) or by a group intelligence</param>
     public void setTarget(Unit u)
     {
-        Debug.Log("unit " + u.gameObject.name + " is the new target");
+        if (debug) { Debug.Log("unit " + u.gameObject.name + " is the new target"); }
         currentOrder = Order.FORCEATTACK;
         target = u;
         target.addOpponent(this);
@@ -263,14 +280,17 @@ public abstract class Unit : MonoBehaviour
     /// </summary>
     public void unSetTarget()
     {
+        if (debug) { Debug.Log("Unset target"); }
         target = null;
         currentOrder = Order.IDLE;
     }
 
     public bool setTargetRessource(RessourceSource r, bool order)
     {
+        if (debug) { Debug.Log("Ressourec set"); }
         if(targetRessource == null)
         {
+            if (debug) { Debug.Log("There was not ressource in memory"); }
             targetSource = r;
             targetRessource = r.ressource;
             r.addHarvester(this);
@@ -281,6 +301,7 @@ public abstract class Unit : MonoBehaviour
         {
             if(targetRessource == r.ressource)
             {
+                if(debug) { Debug.Log("There was a ressource but it's the same"); }
                 targetSource = r;
                 r.addHarvester(this);
                 if (order) { currentOrder = Order.HARVEST; }
@@ -288,10 +309,12 @@ public abstract class Unit : MonoBehaviour
             }
             else if(currentLoad >0 )
             {
+                if (debug) { Debug.Log("There was a ressource and load. Unable to set new ressource"); }
                 return false;
             }
             else
             {
+                if(debug) { Debug.Log("There was a different ressource but no load"); }
                 targetRessource = r.ressource;
                 targetSource = r;
                 r.addHarvester(this);
@@ -342,9 +365,9 @@ public abstract class Unit : MonoBehaviour
 
     public void onRessourceEmpty(RessourceSource remplacement)
     {
-        Debug.Log(remplacement);
         if(remplacement != null)
         {
+            debugMessage("Remplacement set");
             setTargetRessource(remplacement, false);
         }
         else
@@ -409,6 +432,7 @@ public abstract class Unit : MonoBehaviour
     /// </summary>
     private void onDeath()
     {
+        debugMessage("Unit " + gameObject.name + " is dead");
         foreach(Unit u in opponent)
         {
             u.unSetTarget();
@@ -531,6 +555,8 @@ public abstract class Unit : MonoBehaviour
         }
         int quantity = r.onHarvest(this, estimatedQuantity);
         currentLoad += quantity*r.ressource.weight;
+        debugMessage("Acquired " + quantity);
+        debugMessage("Current load is " + currentLoad);
         frameCounter = 0;
         if(currentLoad >= maxLoad)
         {
@@ -542,7 +568,8 @@ public abstract class Unit : MonoBehaviour
     {
         currentLoad -= maxLoad / 3;
         d.onUnLoad(targetRessource,maxLoad / 3);
-        if(currentLoad <= 0)
+        debugMessage("Unloaded");
+        if (currentLoad <= 0)
         {
             currentLoad = 0;
             currentOrder = Order.HARVEST;
@@ -583,4 +610,8 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
+    private void debugMessage(string message)
+    {
+        if (debug) { Debug.Log(message); }
+    }
 }
