@@ -26,7 +26,7 @@ public abstract class Unit : MonoBehaviour
     //This argument is use to smooth the path
     public float nextWaypointDistance = 0.2f;
     //Variable used for combat
-    public float currentLife;
+    
     public float maxLife = 10f;
     public float damage = 5f;
     //Variable used for target selection
@@ -50,7 +50,7 @@ public abstract class Unit : MonoBehaviour
     //private SpriteRenderer m_SpriteRenderer;
     //Private storage for order and target focus
     protected Unit target;
-    public Order currentOrder;
+    protected Order currentOrder;
     private int frameCounter;
     private SphereCollider rangeCollider;
     //Used to store opponent (unit that store this instance as a target)
@@ -62,7 +62,8 @@ public abstract class Unit : MonoBehaviour
     private Ressource targetRessource; //Store the selected ressource (given by the source)
     private Depot targetDepot; //Store the place where ressource can be offloaded
     
-    public float currentLoad = 0f; //Indicates the current load
+    private float currentLoad = 0f; //Indicates the current load
+    private float currentLife;
 
 
     protected void Awake()
