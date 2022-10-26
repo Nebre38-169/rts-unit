@@ -57,7 +57,7 @@ public abstract class Unit : MonoBehaviour
     private List<Unit> opponent;
 
     //Used for ressource harvesting
-    private RessourceTrigger ressourceDetector; //Must be a child gameObject 
+    private RessourceTrigger ressourceDetector; //Must be a child gameObject, used to detect if source and depot are in range
     private RessourceSource targetSource; //Store the selected source
     private Ressource targetRessource; //Store the selected ressource (given by the source)
     private Depot targetDepot; //Store the place where ressource can be offloaded
@@ -86,6 +86,7 @@ public abstract class Unit : MonoBehaviour
 
     protected void FixedUpdate()
     {
+        //If the unit is idle but carries a load, goes to bring it back
         if(currentOrder == Order.IDLE && currentLoad > 0)
         {
             currentOrder = Order.BRING;
@@ -142,6 +143,7 @@ public abstract class Unit : MonoBehaviour
         {
             if (isRessourceInRange())
             {
+                //If the ressource is in range, the unit harvest it every cool down
                 onPathComplete();
                 if(frameCounter > harvestCoolDown * 60)
                 {
@@ -275,6 +277,14 @@ public abstract class Unit : MonoBehaviour
         currentOrder = Order.IDLE;
     }
 
+    /// <summary>
+    /// <para><c>Function set Target Ressource</c></para>
+    /// <para>Set the specified ressource source as the target for harvest,
+    /// The unit must not carry ressource or must already carry the same ressource as the source</para>
+    /// </summary>
+    /// <param name="r">The RessourceSource that will be the target</param>
+    /// <param name="order">Used to change the order of the unit or not</param>
+    /// <returns>True if the source was set as target, false otherwise</returns>
     public bool setTargetRessource(RessourceSource r, bool order)
     {
         if(targetRessource == null)
@@ -348,6 +358,12 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// <para><c>Function on Ressource Empty</c></para>
+    /// <para>Triggered by the source when it is empty,
+    /// The given remplacement could be null, if so the unit goes into idle</para>
+    /// </summary>
+    /// <param name="remplacement">The replacement for the previous source</param>
     public void onRessourceEmpty(RessourceSource remplacement)
     {
         if(remplacement != null)
@@ -443,6 +459,11 @@ public abstract class Unit : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// <para><c>Function is Ressource In Range</c></para>
+    /// <para>Ask the Ressource Detector if the source is in range</para>
+    /// </summary>
+    /// <returns>True if the source is in range, false otherwise</returns>
     private bool isRessourceInRange()
     {
         if(targetSource != null)
@@ -452,7 +473,11 @@ public abstract class Unit : MonoBehaviour
         return false;
     }
 
-    //Need to change this logic, as Depot and ressource could have different size, we must use a collider.
+    /// <summary>
+    /// <para><c>Function is Depot In Range</c></para>
+    /// <para>Ask the Ressource Detector if the depot is in range</para>
+    /// </summary>
+    /// <returns>True if the depot is in range, false otherwise</returns>
     private bool isDepotInRange()
     {
         if (targetDepot != null)
@@ -527,12 +552,27 @@ public abstract class Unit : MonoBehaviour
         frameCounter = 0;
     }
 
+    /// <summary>
+    /// <para><c>Function estimate Quantity</c></para>
+    /// <para>Calcul the integer quantity of ressource 
+    /// the unit can carry</para>
+    /// </summary>
+    /// <returns>Difference between the current and max load,
+    /// divided by the weight of the ressource, rounded to int</returns>
     private int estimateQuantity()
     {
         float diff = maxLoad - currentLoad;
         return Mathf.RoundToInt(diff / targetRessource.weight);
     }
 
+    /// <summary>
+    /// <para><c>Function Harvest</c></para>
+    /// <para>Handles the logic of harvesting when the source is in range.
+    /// Get the estimated quantity (if 0 goes into bring mode),
+    /// then harvest and add the given quantity to its load.
+    /// If the load is over or egal to the max load, goes into bring mode</para>
+    /// </summary>
+    /// <param name="r">The source where the ressource is harvested</param>
     private void harvest(RessourceSource r)
     {
         int estimatedQuantity = estimateQuantity();
@@ -550,6 +590,14 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// <para><c>Function unLoad</c></para>
+    /// <para>Handles the logic of unloading into a depot.
+    /// Calcul the packet that can be given, either the full packet or what is remaining.
+    /// If there is no more ressource to unload, goes into harvest if there is a source,
+    /// or goes into idle if there is none.</para>
+    /// </summary>
+    /// <param name="d"></param>
     private void unload(Depot d)
     {
         if(currentLoad >= unloadPacket * targetRessource.weight)
@@ -580,6 +628,13 @@ public abstract class Unit : MonoBehaviour
         frameCounter = 0;
     }
 
+    /// <summary>
+    /// <para><c>Function get Closest Depot</c></para>
+    /// <para>Find the closest depot from the unit.
+    /// Find all depot and filter depot that can store the ressource,
+    /// then find the closest one</para>
+    /// </summary>
+    /// <returns>The closest depot that can store the ressource</returns>
     private Depot getClosestDepot()
     {
         Depot[] depotArray = GameObject.FindObjectsOfType<Depot>();
@@ -613,6 +668,10 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Used for debug
+    /// </summary>
+    /// <param name="message"></param>
     private void debugMessage(string message)
     {
         if (debug) { Debug.Log(message); }

@@ -8,6 +8,8 @@ using UnityEngine.UI;
 ///Handle selection and order for RTS unit.
 ///Create a pyramid used to detect collision with unit in a 3D world.
 ///Those unit are then selectionned and order can be given to them.
+///Made by : Nebre 38-169
+///Last Update : 25/10/2022 by Nebre 38-169
 ///</summary>
 public class GameRTSController : MonoBehaviour
 {
@@ -209,6 +211,13 @@ public class GameRTSController : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// <para><c>Function isARessourcePointed</c></para>
+    /// Handle finding a ressource source on the mouse position.
+    /// Shoots a Raycast through all and cycle through all hit
+    /// until it found a RessourceSource script.
+    /// </summary>
+    /// <returns>A RessourceSource if a source was found, null otherwise</returns>
     private RessourceSource isARessourcePointed()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);

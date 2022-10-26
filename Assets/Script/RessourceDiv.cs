@@ -4,6 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+/// <summary>
+/// <para><c>Class RessourceDiv</c>, herits from <c>MonoBehaviour</c></para>
+/// Stores UI element and handle update of count and icon for a given ressource
+/// </summary>
 public class RessourceDiv : MonoBehaviour
 {
     private TMP_Text text;
@@ -19,11 +23,21 @@ public class RessourceDiv : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// <para><c>Function updateAmount</c></para>
+    /// Update the TextMeshPro that hold the amount of ressource
+    /// </summary>
+    /// <param name="amout"></param>
     public void updateAmount(int amout)
     {
         text.SetText(amout.ToString());
     }
 
+    /// <summary>
+    /// <para><c>Function updateImage</c></para>
+    /// Update the Image that hold the icon of the ressource
+    /// </summary>
+    /// <param name="icon"></param>
     public void updateImage(Sprite icon)
     {
         image.sprite = icon;
