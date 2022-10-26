@@ -8,6 +8,8 @@ using UnityEngine.UI;
 ///Handle selection and order for RTS unit.
 ///Create a pyramid used to detect collision with unit in a 3D world.
 ///Those unit are then selectionned and order can be given to them.
+///Made by : Nebre 38-169
+///Last Update : 25/10/2022 by Nebre 38-169
 ///</summary>
 public class GameRTSController : MonoBehaviour
 {
@@ -98,11 +100,19 @@ public class GameRTSController : MonoBehaviour
              * If there is no unit, we give the floor position to go to
              */
             Unit u = isAUnitPointed(true);
+            RessourceSource r = isARessourcePointed();
             if(u != null)
             {
                 foreach(Unit selectU in selectedUnit)
                 {
                     selectU.setTarget(u);
+                }
+            }
+            else if(r != null)
+            {
+                foreach(Unit selectU in selectedUnit)
+                {
+                    selectU.setTargetRessource(r,true);
                 }
             }
             else
@@ -112,56 +122,6 @@ public class GameRTSController : MonoBehaviour
             }
             
         }
-    }
-
-    /// <summary>
-    /// <para><c>Function isAUnitPointed</c></para>
-    /// Handle finding a unit on the mouse position.
-    /// It ignores spherecial collider and only use capsule collider to find unit.
-    /// Also, it only give the first found unit as unit should not stack up.
-    /// </summary>
-    /// <param name="enemy">A boolean used to indicate if we are looking for an Allie or an Enemy</param>
-    /// <returns></returns>
-    private Unit isAUnitPointed(bool enemy)
-    {
-        /*To avoid detecting spherical collider and not the pointed unit, we use RaycastAll to see every
-        * Collider in the way. We then loop on all them and get the first one that is a capsule collider
-        * which carries a AllieUnit script
-        */
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
-        if (hits.Length > 0)
-        {
-            int i = 0;
-            bool found = false;
-            while (i < hits.Length && !found)
-            {
-                RaycastHit hit = hits[i];
-                if (hit.collider is CapsuleCollider)
-                {
-                    if (enemy)
-                    {
-                        //We are looking for an enemey
-                        if(hit.collider.GetComponent<EnemyUnit>() != null)
-                        {
-                            found = true;
-                            return hit.collider.GetComponent<EnemyUnit>();
-                        }
-                    }
-                    else
-                    {
-                        //We are looking for an allie
-                        if (hit.collider.GetComponent<AllieUnit>() != null)
-                        {
-                            found = true;
-                            return hit.collider.GetComponent<AllieUnit>();
-                        }
-                    }
-                }
-                i++;
-            }
-        }
-        return null;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -199,6 +159,85 @@ public class GameRTSController : MonoBehaviour
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// <para><c>Function isAUnitPointed</c></para>
+    /// Handle finding a unit on the mouse position.
+    /// It ignores spherecial collider and only use capsule collider to find unit.
+    /// Also, it only give the first found unit as unit should not stack up.
+    /// </summary>
+    /// <param name="enemy">A boolean used to indicate if we are looking for an Allie or an Enemy</param>
+    /// <returns></returns>
+    private Unit isAUnitPointed(bool enemy)
+    {
+        /*To avoid detecting spherical collider and not the pointed unit, we use RaycastAll to see every
+        * Collider in the way. We then loop on all them and get the first one that is a capsule collider
+        * which carries a AllieUnit script
+        */
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
+        if (hits.Length > 0)
+        {
+            int i = 0;
+            bool found = false;
+            while (i < hits.Length && !found)
+            {
+                RaycastHit hit = hits[i];
+                if (hit.collider is CapsuleCollider)
+                {
+                    if (enemy)
+                    {
+                        //We are looking for an enemey
+                        if (hit.collider.GetComponent<EnemyUnit>() != null)
+                        {
+                            found = true;
+                            return hit.collider.GetComponent<EnemyUnit>();
+                        }
+                    }
+                    else
+                    {
+                        //We are looking for an allie
+                        if (hit.collider.GetComponent<AllieUnit>() != null)
+                        {
+                            found = true;
+                            return hit.collider.GetComponent<AllieUnit>();
+                        }
+                    }
+                }
+                i++;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// <para><c>Function isARessourcePointed</c></para>
+    /// Handle finding a ressource source on the mouse position.
+    /// Shoots a Raycast through all and cycle through all hit
+    /// until it found a RessourceSource script.
+    /// </summary>
+    /// <returns>A RessourceSource if a source was found, null otherwise</returns>
+    private RessourceSource isARessourcePointed()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
+        if (hits.Length > 0)
+        {
+            int i = 0;
+            bool found = false;
+            while (i < hits.Length && !found)
+            {
+                RessourceSource r = hits[i].collider.GetComponent<RessourceSource>();
+                if (r)
+                {
+                    found = true;
+                    return r;
+                }
+                i++;
+            }
+        }
+        return null;
     }
 
     ///<summary>
@@ -349,7 +388,7 @@ public class GameRTSController : MonoBehaviour
     {
         int j = 0; //indice de ligne
         int i = 0; //indice de colonne
-        Debug.Log(selectedUnit.Count);
+        //Debug.Log(selectedUnit.Count);
         foreach(Unit u in selectedUnit)
         {
             Vector3 pos = new Vector3(
