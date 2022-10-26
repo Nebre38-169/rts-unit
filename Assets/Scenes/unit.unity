@@ -461,7 +461,6 @@ MonoBehaviour:
   debug: 0
   speed: 200
   nextWaypointDistance: 0.2
-  currentLife: 0
   maxLife: 10
   damage: 5
   searchRange: 10
@@ -472,8 +471,6 @@ MonoBehaviour:
   harvestCoolDown: 5
   maxLoad: 10
   unloadPacket: 5
-  currentOrder: 0
-  currentLoad: 0
 --- !u!135 &645176035
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -1216,7 +1213,6 @@ MonoBehaviour:
   debug: 0
   speed: 200
   nextWaypointDistance: 0.2
-  currentLife: 0
   maxLife: 10
   damage: 5
   searchRange: 10
@@ -1227,8 +1223,6 @@ MonoBehaviour:
   harvestCoolDown: 5
   maxLoad: 10
   unloadPacket: 5
-  currentOrder: 0
-  currentLoad: 0
 --- !u!1 &1546263060
 GameObject:
   m_ObjectHideFlags: 0
@@ -1821,7 +1815,6 @@ MonoBehaviour:
   debug: 1
   speed: 200
   nextWaypointDistance: 0.2
-  currentLife: 0
   maxLife: 10
   damage: 5
   searchRange: 10
@@ -1832,8 +1825,6 @@ MonoBehaviour:
   harvestCoolDown: 2
   maxLoad: 10
   unloadPacket: 5
-  currentOrder: 0
-  currentLoad: 0
 --- !u!65 &2064116335
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2402,6 +2393,23 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6501430031013458089, guid: 43c1aecdf4c01634789ecab093da6449,
+        type: 3}
+      propertyPath: ressources.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6501430031013458089, guid: 43c1aecdf4c01634789ecab093da6449,
+        type: 3}
+      propertyPath: ressources.Array.data[0]
+      value: 
+      objectReference: {fileID: 11400000, guid: 423cbbd9ac0c4db4bbd68eb283909918,
+        type: 2}
+    - target: {fileID: 6501430031013458089, guid: 43c1aecdf4c01634789ecab093da6449,
+        type: 3}
+      propertyPath: ressources.Array.data[1]
+      value: 
+      objectReference: {fileID: 11400000, guid: f076fb07077cb2447bec941049dbed71,
+        type: 2}
     - target: {fileID: 6501430031013458090, guid: 43c1aecdf4c01634789ecab093da6449,
         type: 3}
       propertyPath: m_Name

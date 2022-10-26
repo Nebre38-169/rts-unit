@@ -23,7 +23,7 @@ public class Depot : MonoBehaviour
      * the quantity at index i is the ressource at index i
      * in the storedRessource list
      */
-    public List<int> currentQuantity;
+    private List<int> currentQuantity;
     //Store harvester in case this building is destroyed
     private List<Unit> harvester;
 
