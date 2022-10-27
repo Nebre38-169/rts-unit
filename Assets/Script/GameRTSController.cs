@@ -25,8 +25,6 @@ public class GameRTSController : MonoBehaviour
     //It must containt a rectangle highligthing choosen unit
     [SerializeField] public RectTransform selectionPanel;
 
-    //Use to simulate mouse position in the world
-    private Plane floor;
     //Store position of the mouse in the world on left click down
     private Vector3 startPosition;
     //Store position of the mouse in the worl on left click up 
@@ -42,7 +40,7 @@ public class GameRTSController : MonoBehaviour
 
     private void Awake()
     {
-        floor = new Plane(Vector3.up, 0);
+        
         
         selectionCollider = GetComponent<MeshCollider>();
         pyramid = GetComponent<MeshFilter>();
@@ -65,7 +63,7 @@ public class GameRTSController : MonoBehaviour
             resetSelection();
             resetSelectionPyramid();
             //We get  position of the mouse on the floor and sotres it.
-            startPosition = getMousePositionOnFloor();
+            startPosition = Utils.getMousePositionOnFloor();
             //We get position of the mouse on screen and activate UI
             startScreenPosition = Input.mousePosition;
             selectionPanel.GetComponent<Image>().enabled = true;
@@ -80,7 +78,7 @@ public class GameRTSController : MonoBehaviour
         //The selection end when the left click is released
         if (Input.GetMouseButtonUp(0))
         {
-            endPosition = getMousePositionOnFloor();
+            endPosition = Utils.getMousePositionOnFloor();
             selectionPanel.GetComponent<Image>().enabled = false;
             //We check if the start and end world mouse position are different to avoid an non-volumic mesh
             if (endPosition != startPosition) generateSelectionPyramid(startPosition, endPosition);
@@ -117,7 +115,7 @@ public class GameRTSController : MonoBehaviour
             }
             else
             {
-                Vector3 dir = getMousePositionOnFloor();
+                Vector3 dir = Utils.getMousePositionOnFloor();
                 calculatePosition(dir);
             }
             
@@ -338,29 +336,6 @@ public class GameRTSController : MonoBehaviour
             u.setSelected(false);
         }
         selectedUnit.Clear();
-    }
-
-    ///<summary>
-    ///Function getMousePositionOnFloor
-    ///Gives the position of the mouse on a infinit
-    ///plane location at y=0.
-    ///Could be moved in a utility global class
-    ///</summary>
-    private Vector3 getMousePositionOnFloor()
-    {
-        //We convert the 2D mouse position by casting a ray to the floor object.
-        // -> Could be better to use a terran object.
-        float distance;
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (floor.Raycast(ray, out distance))
-        {
-            //On garde en mémoire la position de la sourie dans le monde.
-            return ray.GetPoint(distance);
-        }
-        else
-        {
-            return new Vector3();
-        }
     }
     
     ///<summary>

@@ -35,6 +35,10 @@ public class Depot : MonoBehaviour
         {
             currentQuantity.Add(0);
         }
+        if(manager == null)
+        {
+            manager = GameObject.FindObjectOfType<RessourceManager>();
+        }
         
     }
 
