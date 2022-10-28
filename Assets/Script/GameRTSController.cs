@@ -99,6 +99,7 @@ public class GameRTSController : MonoBehaviour
              */
             Unit u = isAUnitPointed(true);
             RessourceSource r = isARessourcePointed();
+            Builder d = isABuildingSitePointed();
             if(u != null)
             {
                 foreach(Unit selectU in selectedUnit)
@@ -111,6 +112,14 @@ public class GameRTSController : MonoBehaviour
                 foreach(Unit selectU in selectedUnit)
                 {
                     selectU.setTargetRessource(r,true);
+                }
+            }
+            else if(d != null)
+            {
+                Debug.Log("Construction selected");
+                foreach(Unit selectU in selectedUnit)
+                {
+                    selectU.setBuildingTarget(d);
                 }
             }
             else
@@ -227,6 +236,29 @@ public class GameRTSController : MonoBehaviour
             while (i < hits.Length && !found)
             {
                 RessourceSource r = hits[i].collider.GetComponent<RessourceSource>();
+                if (r)
+                {
+                    Debug.Log(hits[i].collider);
+                    found = true;
+                    return r;
+                }
+                i++;
+            }
+        }
+        return null;
+    }
+
+    private Builder isABuildingSitePointed()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
+        if(hits.Length > 0)
+        {
+            int i = 0;
+            bool found = false;
+            while(i<hits.Length && !found)
+            {
+                Builder r = hits[i].collider.GetComponent<Builder>();
                 if (r)
                 {
                     found = true;

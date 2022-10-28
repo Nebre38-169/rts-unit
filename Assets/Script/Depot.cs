@@ -32,9 +32,6 @@ public class Depot : MonoBehaviour
 
     private void Awake()
     {
-        string gfxName = transform.GetChild(0).name;
-        string[] gfx = AssetDatabase.FindAssets("Color");
-        foreach (string s in gfx) { Debug.Log(s); }
         harvester = new List<Unit>();
         currentQuantity = new List<int>();
         foreach(Ressource ressource in storedRessource)
@@ -162,5 +159,10 @@ public class Depot : MonoBehaviour
         {
             GetComponentInChildren<Renderer>().material.color = Color.gray;
         }
+    }
+
+    public bool isConstructed()
+    {
+        return constructed;
     }
 }

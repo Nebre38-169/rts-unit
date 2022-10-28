@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Pathfinding;
 
 public class Builder : MonoBehaviour
 {
@@ -8,14 +9,21 @@ public class Builder : MonoBehaviour
     private Building construstedBuilding;
     private GameObject building;
     private List<Unit> builder;
-    private int frameCounter;
+    private List<Unit> builderInRange;
     private float incr;
+
+    private void Awake()
+    {
+        builder = new List<Unit>();
+        builderInRange = new List<Unit>();
+    }
 
     private void FixedUpdate()
     {
         if(construstedBuilding != null)
         {
-            frameCounter++;
+            //Debug.Log("Builder in range : " + builderInRange.Count);
+            float increment = incr * (1 + 0.2f * builderInRange.Count);
             if(building.transform.position.y < 0)
             {
                 building.transform.position = new Vector3(
@@ -23,26 +31,66 @@ public class Builder : MonoBehaviour
                 building.transform.position.y + incr,
                 building.transform.position.z);
             }
-            if(frameCounter >= construstedBuilding.constructionDuration * 60)
+            else
             {
-                Debug.Log("Builded");
-                building.GetComponent<Depot>().setConstructed(true);
-                Destroy(this.gameObject);
+                onBuildFinished();
             }
         }
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        UnitTrigger u = other.GetComponent<UnitTrigger>();
+        if(u != null)
+        {
+            Unit unitInRange = u.gameObject.GetComponentInParent<Unit>();
+            if (builder.Contains(unitInRange))
+            {
+                builderInRange.Add(unitInRange);
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        UnitTrigger u = other.GetComponent<UnitTrigger>();
+        if (u != null)
+        {
+            Unit unitInRange = u.gameObject.GetComponentInParent<Unit>();
+            removeBuilder(unitInRange);
+        }
+    }
+
+    private void onBuildFinished()
+    {
+        Debug.Log("Builded");
+        building.GetComponent<Depot>().setConstructed(true);
+        foreach(Unit u in builder)
+        {
+            u.unsetBuildingTarger();
+        }
+        Destroy(this.gameObject);
+    }
+
+    public void addBuilder(Unit u)
+    {
+        if (!builder.Contains(u)) { builder.Add(u); }
+    }
+
+    public void removeBuilder(Unit u)
+    {
+        if(builder.Contains(u)) { builder.Remove(u); }
+    }
+
     public void startBuilding(Building build)
     {
         construstedBuilding = build;
         Vector3 size = construstedBuilding.prefabs.GetComponent<BoxCollider>().size;
         Vector3 position = transform.position;
-        Debug.Log(size);
         position.y = -size.y;
         incr = size.z / (60 * construstedBuilding.constructionDuration);
-        Debug.Log(incr);
         building = Instantiate(construstedBuilding.prefabs, position,Quaternion.identity);
         building.GetComponent<Depot>().setConstructed(false);
-        Vector3 newSize = building.GetComponentInChildren<Renderer>().bounds.size;
-        Debug.Log(newSize);
+        GetComponent<BoxCollider>().size = new Vector3(size.x, 1, size.z);
     }
 }

@@ -10,7 +10,8 @@ public enum Order
     ATTACK,
     FORCEATTACK,
     HARVEST,
-    BRING
+    BRING,
+    BUILD
 }
 
 /// <summary>
@@ -57,10 +58,12 @@ public abstract class Unit : MonoBehaviour
     private List<Unit> opponent;
 
     //Used for ressource harvesting
-    private RessourceTrigger ressourceDetector; //Must be a child gameObject, used to detect if source and depot are in range
+    private UnitTrigger ressourceDetector; //Must be a child gameObject, used to detect if source and depot are in range
     private RessourceSource targetSource; //Store the selected source
     private Ressource targetRessource; //Store the selected ressource (given by the source)
     private Depot targetDepot; //Store the place where ressource can be offloaded
+
+    private Builder targetBuild;
     
     private float currentLoad = 0f; //Indicates the current load
     private float currentLife;
@@ -78,7 +81,7 @@ public abstract class Unit : MonoBehaviour
         rangeCollider = GetComponent<SphereCollider>();
         rangeCollider.radius = searchRange;
         opponent = new List<Unit>();
-        ressourceDetector = gameObject.GetComponentInChildren<RessourceTrigger>();
+        ressourceDetector = gameObject.GetComponentInChildren<UnitTrigger>();
         if(ressourceDetector == null)
         {
             throw new System.Exception("Missing ressourec detector on unit " + gameObject.name);
@@ -182,6 +185,18 @@ public abstract class Unit : MonoBehaviour
             else
             {
                 if (path == null) { generatePath(targetDepot.transform.position); }
+                moveAlongPath();
+            }
+        }
+        if (currentOrder == Order.BUILD)
+        {
+            if (isBuildInRange())
+            {
+                onPathComplete();
+            }
+            else
+            {
+                if(path == null) { generatePath(targetBuild.transform.position); }
                 moveAlongPath();
             }
         }
@@ -318,6 +333,20 @@ public abstract class Unit : MonoBehaviour
                 return true;
             }
         }
+    }
+
+    public bool setBuildingTarget(Builder d)
+    {
+        targetBuild = d;
+        targetBuild.addBuilder(this);
+        currentOrder = Order.BUILD;
+        return true;
+    }
+
+    public void unsetBuildingTarger()
+    {
+        targetBuild = null;
+        currentOrder = Order.IDLE;
     }
 
     /// <summary>
@@ -484,6 +513,15 @@ public abstract class Unit : MonoBehaviour
         if (targetDepot != null)
         {
             return ressourceDetector.isTargetDepotInRange(targetDepot);
+        }
+        return false;
+    }
+
+    private bool isBuildInRange()
+    {
+        if(targetBuild != null)
+        {
+            return ressourceDetector.isBuildInRange(targetBuild);
         }
         return false;
     }

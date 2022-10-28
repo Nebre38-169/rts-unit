@@ -90,8 +90,18 @@ public class GameRTSBuilder : MonoBehaviour
     {
         BoxCollider buildingBoxCollider = build.prefabs.GetComponent<BoxCollider>();
         Collider[] collision = Physics.OverlapBox(pos, buildingBoxCollider.size/2, Quaternion.identity,spaceDetectionMask);
-        return collision.Length <= 0;
-
+        List<Collider> collisions = new List<Collider>();
+        foreach(Collider col in collision) {
+            if((col.gameObject.name.Contains("unit") || col.gameObject.name.Contains("Detector")) && col.GetType() == typeof(SphereCollider))
+            {
+                //nothing
+            }
+            else
+            {
+                collisions.Add(col);
+            }
+        }
+        return collisions.Count <= 0;
     }
 
     private void resetSelection()
