@@ -221,7 +221,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 185, y: -223}
+  m_AnchoredPosition: {x: 480, y: -420}
   m_SizeDelta: {x: 960, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &67384291 stripped
@@ -887,6 +887,8 @@ MonoBehaviour:
     type: 3}
   buildingPanel: {fileID: 53237711}
   placeholder: {fileID: 480574637}
+  builderPrefabs: {fileID: 853871398192102290, guid: d6cf941a006facf439bf505ec40bb1d1,
+    type: 3}
   spaceDetectionMask:
     serializedVersion: 2
     m_Bits: 113
@@ -2213,6 +2215,11 @@ PrefabInstance:
       propertyPath: manager
       value: 
       objectReference: {fileID: 1308816702}
+    - target: {fileID: 1126224096304954961, guid: dd4af2b067e8f674dbf1fdf4b095ee73,
+        type: 3}
+      propertyPath: initialMat
+      value: 
+      objectReference: {fileID: 2100000, guid: 842cf3215c5b91541a200d815c1f3994, type: 2}
     - target: {fileID: 1126224096304954962, guid: dd4af2b067e8f674dbf1fdf4b095ee73,
         type: 3}
       propertyPath: m_RootOrder
@@ -2502,6 +2509,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: RessourceManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 6501430031189289953, guid: 43c1aecdf4c01634789ecab093da6449,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 139.84
+      objectReference: {fileID: 0}
+    - target: {fileID: 6501430031189289953, guid: 43c1aecdf4c01634789ecab093da6449,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 81.694
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 43c1aecdf4c01634789ecab093da6449, type: 3}

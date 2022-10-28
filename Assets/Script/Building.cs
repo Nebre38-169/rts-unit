@@ -7,4 +7,5 @@ public class Building : ScriptableObject
 {
     public Sprite icon;
     public GameObject prefabs;
+    public float constructionDuration;
 }

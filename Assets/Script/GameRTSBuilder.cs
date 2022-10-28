@@ -10,6 +10,7 @@ public class GameRTSBuilder : MonoBehaviour
     [SerializeField] public BuildingButton itemButton;
     public GameObject buildingPanel;
     public Transform placeholder;
+    public Builder builderPrefabs;
     public LayerMask spaceDetectionMask;
 
     private Building selectedBuilding;
@@ -38,7 +39,6 @@ public class GameRTSBuilder : MonoBehaviour
                 ); 
                 placeholder.localScale = scale;
                 item.setSelected(true);
-                Debug.Log("Clicked");
             });
         }
     }
@@ -47,38 +47,24 @@ public class GameRTSBuilder : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(1))
         {
-            placeholder.gameObject.SetActive(false);
-            selectedBuilding = null;
-            foreach(BuildingButton item in buttonList)
-            {
-                item.setSelected(false);
-            }
+            resetSelection();
         }
-
         if(Input.GetMouseButtonDown(0) && selectedBuilding != null)
         {
             Vector3 position = Utils.getMousePositionOnFloor();
             if (canSpawn(selectedBuilding, position))
             {
-                placeholder.gameObject.SetActive(false);
-                Instantiate(selectedBuilding.prefabs, position, Quaternion.identity);
-                selectedBuilding = null;
-                foreach (BuildingButton item in buttonList)
-                {
-                    item.setSelected(false);
-                }
+                Builder b = Instantiate(builderPrefabs, position, Quaternion.identity);
+                b.startBuilding(selectedBuilding);
+                resetSelection();
             }
-            
         }
 
         if (selectedBuilding != null)
         {
             placeholder.gameObject.SetActive(true);
-            
-            
             Vector3 position = Utils.getMousePositionOnFloor();
             placeholder.position = transform.InverseTransformPoint(new Vector3(position.x, 0.5f, position.z));
-            
             if (canSpawn(selectedBuilding, position))
             {
                 placeholder.GetComponent<Renderer>().material.SetColor("_Color", Color.green);
@@ -90,15 +76,6 @@ public class GameRTSBuilder : MonoBehaviour
         }
     }
 
-
-    private bool canSpawn(Building build, Vector3 pos)
-    {
-        BoxCollider buildingBoxCollider = build.prefabs.GetComponent<BoxCollider>();
-        Collider[] collision = Physics.OverlapBox(pos, buildingBoxCollider.size/2, Quaternion.identity,spaceDetectionMask);
-        return collision.Length <= 0;
-
-    }
-
     private void OnDrawGizmos()
     {
         if (selectedBuilding)
@@ -108,4 +85,23 @@ public class GameRTSBuilder : MonoBehaviour
             Gizmos.DrawWireCube(Utils.getMousePositionOnFloor(), buildingBoxCollider.size);
         }
     }
+
+    private bool canSpawn(Building build, Vector3 pos)
+    {
+        BoxCollider buildingBoxCollider = build.prefabs.GetComponent<BoxCollider>();
+        Collider[] collision = Physics.OverlapBox(pos, buildingBoxCollider.size/2, Quaternion.identity,spaceDetectionMask);
+        return collision.Length <= 0;
+
+    }
+
+    private void resetSelection()
+    {
+        placeholder.gameObject.SetActive(false);
+        selectedBuilding = null;
+        foreach (BuildingButton item in buttonList)
+        {
+            item.setSelected(false);
+        }
+    }
+    
 }
