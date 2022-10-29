@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,9 +16,12 @@ public class GameRTSBuilder : MonoBehaviour
 
     private Building selectedBuilding;
     private List<BuildingButton> buttonList;
+    private RessourceManager ressourceManager;
 
     private void Awake()
     {
+        ressourceManager = GameObject.FindObjectOfType<RessourceManager>();
+        if(ressourceManager == null) { throw new SystemException("Scene missing RessourceManager"); }
         placeholder.gameObject.SetActive(false);
         buttonList = new List<BuildingButton>();
         foreach(Building building in buildings)
@@ -29,16 +33,19 @@ public class GameRTSBuilder : MonoBehaviour
             item.setSelected(false);
             item.GetComponent<Button>().onClick.AddListener(() =>
             {
-                selectedBuilding = building;
-                Vector3 buildingSize = selectedBuilding.prefabs.GetComponent<BoxCollider>().size;
-                Vector3 placeholderSize = placeholder.GetComponent<Renderer>().bounds.size;
-                Vector3 scale = new Vector3(
-                buildingSize.x / placeholderSize.x,
-                1,
-                buildingSize.z / placeholderSize.z
-                ); 
-                placeholder.localScale = scale;
-                item.setSelected(true);
+                if (!item.disabled.IsActive())
+                {
+                    selectedBuilding = building;
+                    Vector3 buildingSize = selectedBuilding.prefabs.GetComponent<BoxCollider>().size;
+                    Vector3 placeholderSize = placeholder.GetComponent<Renderer>().bounds.size;
+                    Vector3 scale = new Vector3(
+                    buildingSize.x / placeholderSize.x,
+                    1,
+                    buildingSize.z / placeholderSize.z
+                    );
+                    placeholder.localScale = scale;
+                    item.setSelected(true);
+                }
             });
         }
     }
@@ -54,6 +61,12 @@ public class GameRTSBuilder : MonoBehaviour
             Vector3 position = Utils.getMousePositionOnFloor();
             if (canSpawn(selectedBuilding, position))
             {
+                for(int i = 0; i < selectedBuilding.needRessource.Count; i++)
+                {
+                    ressourceManager.removeRessourceQuantity(
+                        selectedBuilding.needRessource[i],
+                        selectedBuilding.cost[i]);
+                }
                 Builder b = Instantiate(builderPrefabs, position, Quaternion.identity);
                 b.startBuilding(selectedBuilding);
                 resetSelection();
@@ -111,6 +124,16 @@ public class GameRTSBuilder : MonoBehaviour
         foreach (BuildingButton item in buttonList)
         {
             item.setSelected(false);
+        }
+    }
+
+    public void onRessourceUpdate(IDictionary<Ressource,int> q)
+    {
+        for(int i = 0; i < buildings.Count; i++)
+        {
+            bool constructible = buildings[i].isConstructible(q);
+            Debug.Log(constructible);
+            buttonList[i].setDisabled(!constructible);
         }
     }
     

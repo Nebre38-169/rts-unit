@@ -7,6 +7,7 @@ public class BuildingButton : MonoBehaviour
 {
     public Image icon;
     public Image selected;
+    public Image disabled;
 
     public void setIcon(Sprite i)
     {
@@ -16,5 +17,10 @@ public class BuildingButton : MonoBehaviour
     public void setSelected(bool s)
     {
         selected.enabled = s;
+    }
+
+    public void setDisabled(bool s)
+    {
+        disabled.enabled = s;
     }
 }

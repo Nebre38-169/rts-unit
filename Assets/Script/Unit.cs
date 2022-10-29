@@ -166,26 +166,30 @@ public abstract class Unit : MonoBehaviour
         }
         if(currentOrder == Order.BRING)
         {
-            if(targetDepot == null)
+            if (targetDepot == null)
             {
+                debugMessage("Looking for a depot");
                 targetDepot = getClosestDepot();
-            }
-            if (isDepotInRange())
-            {
-                onPathComplete();
-                if (frameCounter > harvestCoolDown * 60)
-                {
-                    unload(targetDepot);
-                }
-                else
-                {
-                    frameCounter++;
-                }
             }
             else
             {
-                if (path == null) { generatePath(targetDepot.transform.position); }
-                moveAlongPath();
+                if (isDepotInRange())
+                {
+                    onPathComplete();
+                    if (frameCounter > harvestCoolDown * 60)
+                    {
+                        unload(targetDepot);
+                    }
+                    else
+                    {
+                        frameCounter++;
+                    }
+                }
+                else
+                {
+                    if (path == null) { generatePath(targetDepot.transform.position); }
+                    moveAlongPath();
+                }
             }
         }
         if (currentOrder == Order.BUILD)

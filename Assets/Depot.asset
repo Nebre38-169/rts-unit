@@ -15,3 +15,7 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 8f0fb322b2376e64c982c89e99926f17, type: 3}
   prefabs: {fileID: 1126224096304954960, guid: dd4af2b067e8f674dbf1fdf4b095ee73, type: 3}
   constructionDuration: 30
+  needRessource:
+  - {fileID: 11400000, guid: 6525ab71df3871449b0e4005cc33bc72, type: 2}
+  - {fileID: 11400000, guid: f076fb07077cb2447bec941049dbed71, type: 2}
+  cost: 0500000005000000

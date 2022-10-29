@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,9 +20,15 @@ public class RessourceManager : MonoBehaviour
     //Every depot is stored here until it is destroyed
     private List<Depot> depots;
     private List<RessourceDiv> displays;
+    private GameRTSBuilder gameRTSBuilder;
 
     private void Awake()
     {
+        gameRTSBuilder = GameObject.FindObjectOfType<GameRTSBuilder>();
+        if(gameRTSBuilder == null)
+        {
+            throw new SystemException("Missing GameRTSBuilder");
+        }
         ressourceQuantities = new List<int>();
         depots = new List<Depot>();
         displays = new List<RessourceDiv>();
@@ -35,6 +42,21 @@ public class RessourceManager : MonoBehaviour
             div.updateImage(ressources[i].icon);
             displays.Add(div);
         }
+    }
+
+    private void Start()
+    {
+        gameRTSBuilder.onRessourceUpdate(calculQuantity());
+    }
+
+    private IDictionary<Ressource, int> calculQuantity()
+    {
+        IDictionary<Ressource, int> quantity = new Dictionary<Ressource, int>();
+        for(int i = 0; i < ressources.Count; i++)
+        {
+            quantity.Add(ressources[i], ressourceQuantities[i]);
+        }
+        return quantity;
     }
 
     /// <summary>
@@ -59,30 +81,25 @@ public class RessourceManager : MonoBehaviour
         if (depots.Contains(d)) { depots.Remove(d); }
     }
 
-    /// <summary>
-    /// <para><c>Function on Quantity Update</c></para>
-    /// <para>Call by a Depot that receive a ressource. 
-    /// Cycle through the depot list to count the ressource that was updated</para>
-    /// </summary>
-    /// <param name="r">The ressource that must be counted</param>
-    public void onQuantityUpdate(Ressource r)
+    public void addRessourceQuantity(Ressource r, int quantity)
     {
-        //Debug.Log("Updating ressource " + r.ressourceName);
         int index = ressources.IndexOf(r);
         if(index > -1)
         {
-            int quantity = 0;
-            foreach(Depot d in depots)
-            {
-                if (d.isRessourceUnloadable(r))
-                {
-                    quantity += d.getRessourceQuantity(r);
-                }
-            }
-            ressourceQuantities[index] = quantity;
-            Debug.Log("Current quantity :" + quantity);
-            displays[index].updateAmount(quantity);
+            ressourceQuantities[index] += quantity;
+            displays[index].updateAmount(ressourceQuantities[index]);
+            gameRTSBuilder.onRessourceUpdate(calculQuantity());
         }
     }
 
+    public void removeRessourceQuantity(Ressource r, int quantity)
+    {
+        int index = ressources.IndexOf(r);
+        if(index > -1)
+        {
+            ressourceQuantities[index] -= quantity;
+            displays[index].updateAmount(ressourceQuantities[index]);
+            gameRTSBuilder.onRessourceUpdate(calculQuantity());
+        }
+    }
 }

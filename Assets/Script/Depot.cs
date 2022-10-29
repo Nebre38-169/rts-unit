@@ -14,30 +14,19 @@ using UnityEngine;
 /// </summary>
 public class Depot : MonoBehaviour
 {
+    public bool constructed;
     //Store each ressource than can be stored in this depot
     public List<Ressource> storedRessource;
     //Store the manager, which handle UI and total of ressources
     [SerializeField] public RessourceManager manager;
 
-    /*
-     * Hold the current quantity of each ressource, 
-     * the quantity at index i is the ressource at index i
-     * in the storedRessource list
-     */
-    private List<int> currentQuantity;
     //Store harvester in case this building is destroyed
     private List<Unit> harvester;
-    private bool constructed;
     public Material initialMat;
 
     private void Awake()
     {
         harvester = new List<Unit>();
-        currentQuantity = new List<int>();
-        foreach(Ressource ressource in storedRessource)
-        {
-            currentQuantity.Add(0);
-        }
         if(manager == null)
         {
             manager = GameObject.FindObjectOfType<RessourceManager>();
@@ -93,34 +82,6 @@ public class Depot : MonoBehaviour
     }
 
     /// <summary>
-    /// <para><c>Function getRessourceQuantity</c></para>
-    /// Returns the quantity of the specified ressource,
-    /// if the ressource is not stored returns -1
-    /// </summary>
-    /// <param name="r">A ressource</param>
-    /// <returns></returns>
-    public int getRessourceQuantity(Ressource r)
-    {
-        if (constructed)
-        {
-            int index = storedRessource.IndexOf(r);
-            if (index > -1)
-            {
-                return currentQuantity[index];
-            }
-            else
-            {
-                return -1;
-            }
-        } 
-        else
-        {
-            return -1;
-        }
-        
-    }
-
-    /// <summary>
     /// <para><c>Function onUnLoad</c></para>
     /// Handle adding the specified quantity into the right index.
     /// Find the corresponding index using the ressource and
@@ -137,14 +98,12 @@ public class Depot : MonoBehaviour
             int index = storedRessource.IndexOf(r);
             if (index > -1)
             {
-                currentQuantity[index] += quantity;
-                manager.onQuantityUpdate(r);
+                manager.addRessourceQuantity(storedRessource[index], quantity);
                 return true;
             }
             return false;
         }
         return false;
-        
     }
 
     public void setConstructed(bool b)
