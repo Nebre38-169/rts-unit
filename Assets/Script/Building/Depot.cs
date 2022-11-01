@@ -12,9 +12,8 @@ using UnityEngine;
 /// Made by : Nebre 38-169
 /// Last Update : 25/10/2022 by Nebre 38-169
 /// </summary>
-public class Depot : MonoBehaviour
+public class Depot : Building
 {
-    public bool constructed;
     //Store each ressource than can be stored in this depot
     public List<Ressource> storedRessource;
     //Store the manager, which handle UI and total of ressources
@@ -22,10 +21,11 @@ public class Depot : MonoBehaviour
 
     //Store harvester in case this building is destroyed
     private List<Unit> harvester;
-    public Material initialMat;
+    
 
-    private void Awake()
+    new private void Awake()
     {
+        base.Awake();
         harvester = new List<Unit>();
         if(manager == null)
         {
@@ -104,24 +104,5 @@ public class Depot : MonoBehaviour
             return false;
         }
         return false;
-    }
-
-    public void setConstructed(bool b)
-    {
-        constructed = b;
-        if (constructed)
-        {
-            Debug.Log("Constructed");
-            GetComponentInChildren<Renderer>().material = initialMat;
-        }
-        else
-        {
-            GetComponentInChildren<Renderer>().material.color = Color.gray;
-        }
-    }
-
-    public bool isConstructed()
-    {
-        return constructed;
     }
 }

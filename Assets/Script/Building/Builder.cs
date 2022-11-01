@@ -6,7 +6,7 @@ using Pathfinding;
 public class Builder : MonoBehaviour
 {
     
-    private Building construstedBuilding;
+    private BuildingHolder construstedBuilding;
     private GameObject building;
     private List<Unit> builder;
     private List<Unit> builderInRange;
@@ -40,7 +40,7 @@ public class Builder : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        UnitTrigger u = other.GetComponent<UnitTrigger>();
+        RessourceTrigger u = other.GetComponent<RessourceTrigger>();
         if(u != null)
         {
             Unit unitInRange = u.gameObject.GetComponentInParent<Unit>();
@@ -53,7 +53,7 @@ public class Builder : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        UnitTrigger u = other.GetComponent<UnitTrigger>();
+        RessourceTrigger u = other.GetComponent<RessourceTrigger>();
         if (u != null)
         {
             Unit unitInRange = u.gameObject.GetComponentInParent<Unit>();
@@ -82,7 +82,7 @@ public class Builder : MonoBehaviour
         if(builder.Contains(u)) { builder.Remove(u); }
     }
 
-    public void startBuilding(Building build)
+    public void startBuilding(BuildingHolder build)
     {
         construstedBuilding = build;
         Vector3 size = construstedBuilding.prefabs.GetComponent<BoxCollider>().size;

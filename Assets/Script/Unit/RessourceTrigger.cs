@@ -7,7 +7,7 @@ using UnityEngine;
 /// <para>Used to detect ressource or depot in range,
 /// should be hold by an empty object, child of the unit</para>
 /// </summary>
-public class UnitTrigger : MonoBehaviour
+public class RessourceTrigger : MonoBehaviour
 {
     //Stores every ressource in range
     private List<RessourceSource> ressourcesInRange;
@@ -20,7 +20,6 @@ public class UnitTrigger : MonoBehaviour
         ressourcesInRange = new List<RessourceSource>();
         depotInRange = new List<Depot>();
         buildInRange = new List<Builder>();
-
     }
 
     private void OnTriggerEnter(Collider other)
@@ -28,6 +27,7 @@ public class UnitTrigger : MonoBehaviour
         RessourceSource r = other.GetComponent<RessourceSource>();
         Depot d = other.GetComponent<Depot>();
         Builder b = other.GetComponent<Builder>();
+        Target t = other.GetComponent<Target>();
         //If a source enter in the trigger, the source is in range
         if (r != null)
         {
@@ -37,14 +37,14 @@ public class UnitTrigger : MonoBehaviour
             }
         }
         //If a depot enter in the trigger, the depot is in range
-        else if (d != null)
+        if (d != null)
         {
             if (!depotInRange.Contains(d))
             {
                 depotInRange.Add(d);
             }
         }
-        else if(b != null)
+        if(b != null)
         {
             if (!buildInRange.Contains(b))
             {
@@ -58,6 +58,7 @@ public class UnitTrigger : MonoBehaviour
         RessourceSource r = other.GetComponent<RessourceSource>();
         Depot d = other.GetComponent<Depot>();
         Builder b = other.GetComponent<Builder>();
+        Target t = other.GetComponent<Target>();
         //If a source leave the trigger, the source is no longer in range
         if (r != null)
         {
@@ -67,14 +68,14 @@ public class UnitTrigger : MonoBehaviour
             }
         }
         //If a depot leave the trigger, the depot is no longer in range
-        else if (d != null)
+        if (d != null)
         {
             if (depotInRange.Contains(d))
             {
                 depotInRange.Remove(d);
             }
         }
-        else if(b != null)
+        if(b != null)
         {
             if (buildInRange.Contains(b))
             {
@@ -111,6 +112,4 @@ public class UnitTrigger : MonoBehaviour
     {
         return buildInRange.Contains(target);
     }
-
-
 }

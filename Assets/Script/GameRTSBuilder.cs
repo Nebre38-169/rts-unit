@@ -7,14 +7,14 @@ using UnityEngine.UI;
 
 public class GameRTSBuilder : MonoBehaviour
 {
-    [SerializeField] public List<Building> buildings;
+    [SerializeField] public List<BuildingHolder> buildings;
     [SerializeField] public BuildingButton itemButton;
     public GameObject buildingPanel;
     public Transform placeholder;
     public Builder builderPrefabs;
     public LayerMask spaceDetectionMask;
 
-    private Building selectedBuilding;
+    private BuildingHolder selectedBuilding;
     private List<BuildingButton> buttonList;
     private RessourceManager ressourceManager;
 
@@ -24,7 +24,7 @@ public class GameRTSBuilder : MonoBehaviour
         if(ressourceManager == null) { throw new SystemException("Scene missing RessourceManager"); }
         placeholder.gameObject.SetActive(false);
         buttonList = new List<BuildingButton>();
-        foreach(Building building in buildings)
+        foreach(BuildingHolder building in buildings)
         {
             BuildingButton item = Instantiate(itemButton);
             buttonList.Add(item);
@@ -99,7 +99,7 @@ public class GameRTSBuilder : MonoBehaviour
         }
     }
 
-    private bool canSpawn(Building build, Vector3 pos)
+    private bool canSpawn(BuildingHolder build, Vector3 pos)
     {
         BoxCollider buildingBoxCollider = build.prefabs.GetComponent<BoxCollider>();
         Collider[] collision = Physics.OverlapBox(pos, buildingBoxCollider.size/2, Quaternion.identity,spaceDetectionMask);
@@ -132,7 +132,6 @@ public class GameRTSBuilder : MonoBehaviour
         for(int i = 0; i < buildings.Count; i++)
         {
             bool constructible = buildings[i].isConstructible(q);
-            Debug.Log(constructible);
             buttonList[i].setDisabled(!constructible);
         }
     }

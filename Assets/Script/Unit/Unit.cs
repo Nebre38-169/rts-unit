@@ -19,16 +19,13 @@ public enum Order
 /// Handle order execution for move, attack and idle.
 /// Handle movement and fight, handle following a target and loosing the target
 /// </summary>
-public abstract class Unit : MonoBehaviour
+public class Unit : Target
 {
-    public bool debug = false;
-
     public float speed = 5f;
     //This argument is use to smooth the path
     public float nextWaypointDistance = 0.2f;
     //Variable used for combat
     
-    public float maxLife = 10f;
     public float damage = 5f;
     //Variable used for target selection
     public float searchRange = 10f; //Within this range, an enemy will be picked as a target
@@ -50,15 +47,15 @@ public abstract class Unit : MonoBehaviour
     //Could be used to render a selected state
     //private SpriteRenderer m_SpriteRenderer;
     //Private storage for order and target focus
-    protected Unit target;
+    protected Target target;
     protected Order currentOrder;
     private int frameCounter;
     private SphereCollider rangeCollider;
+    private TargetTrigger targetDetector;
     //Used to store opponent (unit that store this instance as a target)
-    private List<Unit> opponent;
 
     //Used for ressource harvesting
-    private UnitTrigger ressourceDetector; //Must be a child gameObject, used to detect if source and depot are in range
+    private RessourceTrigger ressourceDetector; //Must be a child gameObject, used to detect if source and depot are in range
     private RessourceSource targetSource; //Store the selected source
     private Ressource targetRessource; //Store the selected ressource (given by the source)
     private Depot targetDepot; //Store the place where ressource can be offloaded
@@ -66,11 +63,11 @@ public abstract class Unit : MonoBehaviour
     private Builder targetBuild;
     
     private float currentLoad = 0f; //Indicates the current load
-    private float currentLife;
 
 
-    protected void Awake()
+    new protected void Awake()
     {
+        base.Awake();
         //m_SpriteRenderer = GetComponent<SpriteRenderer>();
         seeker = GetComponent<Seeker>();
         rb = GetComponent<Rigidbody>();
@@ -80,12 +77,18 @@ public abstract class Unit : MonoBehaviour
         //We set the sphere collider to the search range to lookout for enemy unit
         rangeCollider = GetComponent<SphereCollider>();
         rangeCollider.radius = searchRange;
-        opponent = new List<Unit>();
-        ressourceDetector = gameObject.GetComponentInChildren<UnitTrigger>();
+        ressourceDetector = gameObject.GetComponentInChildren<RessourceTrigger>();
         if(ressourceDetector == null)
         {
-            throw new System.Exception("Missing ressourec detector on unit " + gameObject.name);
+            throw new System.Exception("Missing ressource detector on unit " + gameObject.name);
         }
+        targetDetector = GetComponentInChildren<TargetTrigger>();
+        if(targetDetector == null) { throw new System.Exception("Missing target detector on unit " + gameObject.name); }
+    }
+
+    private void Start()
+    {
+        targetDetector.setCollider(attackRange);
     }
 
     protected void FixedUpdate()
@@ -109,6 +112,7 @@ public abstract class Unit : MonoBehaviour
             {
                 if (isTargetInRange())
                 {
+                    debugMessage("Target in range");
                     //If the unit is in attack range, we assume the path is completed
                     onPathComplete();
                     if (frameCounter > coolDownDuration * 60)
@@ -206,6 +210,20 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        Target u = other.GetComponent<Target>();
+        if (u != null && isEnemy(u) && target == null)
+        {
+            debugMessage("Found target " + u.gameObject.name);
+            setTarget(u);
+            if (currentOrder != Order.MOVE)
+            {
+                currentOrder = Order.ATTACK;
+            }
+        }
+    }
+
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
@@ -224,22 +242,6 @@ public abstract class Unit : MonoBehaviour
         //Debug.Log("Calculating path");
         seeker.StartPath(rb.position, endPosition, onPathCalcul);
     }
-
-    /// <summary>
-    /// <para><c>Function onTakeDamage</c></para>
-    /// Handle damage given by an other unit.
-    /// If the current life goes below zero, the unit is killed and all its oppenent are warn of it
-    /// </summary>
-    /// <param name="d">Float that represent the damage dealed</param>
-    public void onTakeDamage(float d)
-    {
-        currentLife -= d;
-        if (debug) { Debug.Log(gameObject.name + " toke " + d + " damage(s)"); }
-        if (currentLife <= 0) {
-            onDeath(); 
-        }
-    }
-
 
     /// <summary>
     /// <c>Function setSelected</c>
@@ -280,7 +282,7 @@ public abstract class Unit : MonoBehaviour
     /// We assume the order is given either by the player or by the computer.
     /// </summary>
     /// <param name="u">The target setted either by the GameRTSController(Player) or by a group intelligence</param>
-    public void setTarget(Unit u)
+    public void setTarget(Target u)
     {
         currentOrder = Order.FORCEATTACK;
         target = u;
@@ -368,31 +370,6 @@ public abstract class Unit : MonoBehaviour
     }
 
     /// <summary>
-    /// <para><c>Function addOpponent</c></para>
-    /// When unit A is selected as a target by unit B, unit A add unit B in is oppenent.
-    /// It uses to warn oppenent of the death of their target, to avoid pointing to a non-existing object
-    /// </summary>
-    /// <param name="u">The opponent</param>
-    public void addOpponent(Unit u)
-    {
-        opponent.Add(u);
-    }
-
-    /// <summary>
-    /// <para><c>Function removeOpponent</c></para>
-    /// Handle removing an opponent from the list. 
-    /// When an opponent loose its target, we remove the opponent from the list
-    /// </summary>
-    /// <param name="u">The opponent</param>
-    public void removeOpponent(Unit u)
-    {
-        if (opponent.Contains(u))
-        {
-            opponent.Remove(u);
-        }
-    }
-
-    /// <summary>
     /// <para><c>Function on Ressource Empty</c></para>
     /// <para>Triggered by the source when it is empty,
     /// The given remplacement could be null, if so the unit goes into idle</para>
@@ -464,21 +441,6 @@ public abstract class Unit : MonoBehaviour
     }
 
     /// <summary>
-    /// <para><c>Function onDeath</c></para>
-    /// Trigger when the unit life goes below 0.
-    /// Warn oppenent that this unit no longer exist
-    /// </summary>
-    private void onDeath()
-    {
-        debugMessage("Unit " + gameObject.name + " is dead");
-        foreach(Unit u in opponent)
-        {
-            u.unSetTarget();
-        }
-        Destroy(this.gameObject);
-    }
-
-    /// <summary>
     /// <para><c>Function isTargetInRange</c></para>
     /// Indicates wether the target is in attack range or not
     /// </summary>
@@ -487,8 +449,7 @@ public abstract class Unit : MonoBehaviour
     {
         if (target != null)
         {
-            float targetDistance = Mathf.Abs(Vector3.Distance(transform.position, target.transform.position));
-            return targetDistance <= attackRange;
+            return targetDetector.isTargetInRange(target);
         }
         return false;
     }
@@ -589,7 +550,7 @@ public abstract class Unit : MonoBehaviour
     /// Handle dealing damage to a unit.
     /// </summary>
     /// <param name="u">The target of the attack</param>
-    private void dealDamage(Unit u)
+    private void dealDamage(Target u)
     {
         u.onTakeDamage(damage);
         frameCounter = 0;
@@ -711,12 +672,13 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Used for debug
-    /// </summary>
-    /// <param name="message"></param>
-    private void debugMessage(string message)
+    private bool isEnemy(Target u)
     {
-        if (debug) { Debug.Log(message); }
+        return ally != u.ally;
+    }
+    
+    private bool isAlly(Target u)
+    {
+        return !isEnemy(u);
     }
 }

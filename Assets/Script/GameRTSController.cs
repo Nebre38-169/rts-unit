@@ -35,7 +35,7 @@ public class GameRTSController : MonoBehaviour
     private MeshFilter pyramid;
     private MeshCollider selectionCollider;
     //Store selectionned unit
-    private List<AllieUnit> selectedUnit;
+    private List<Unit> selectedUnit;
     
 
     private void Awake()
@@ -49,7 +49,7 @@ public class GameRTSController : MonoBehaviour
         MeshRenderer render = GetComponent<MeshRenderer>();
         render.enabled = debug;
         
-        selectedUnit = new List<AllieUnit>();
+        selectedUnit = new List<Unit>();
         
         selectionPanel.GetComponent<Image>().enabled = false;
     }
@@ -86,7 +86,7 @@ public class GameRTSController : MonoBehaviour
             {
                 //If the end and the start position are the same, we just check for a Allie Unit and set it selected
                 Unit u = isAUnitPointed(false);
-                if(u != null) { selectUnit((AllieUnit)u); }
+                if(u != null) { selectUnit(u); }
             }
         }
 
@@ -136,7 +136,7 @@ public class GameRTSController : MonoBehaviour
         if(other is CapsuleCollider)
         {
             //When the pyramid is generated, collider behave as if unit entered it.
-            AllieUnit u = other.GetComponent<AllieUnit>();
+            Unit u = other.GetComponent<Unit>();
             if (u != null) selectUnit(u);
         }
         
@@ -191,25 +191,20 @@ public class GameRTSController : MonoBehaviour
             while (i < hits.Length && !found)
             {
                 RaycastHit hit = hits[i];
-                if (hit.collider is CapsuleCollider)
+                if (hit.collider is CapsuleCollider && hit.collider.GetComponent<Unit>() != null)
                 {
-                    if (enemy)
+                    Unit unit = hit.collider.GetComponent<Unit>();
+                    if(unit.ally && !enemy)
                     {
-                        //We are looking for an enemey
-                        if (hit.collider.GetComponent<EnemyUnit>() != null)
-                        {
-                            found = true;
-                            return hit.collider.GetComponent<EnemyUnit>();
-                        }
+                        return unit;
+                    }
+                    else if (!unit.ally && enemy)
+                    {
+                        return unit;
                     }
                     else
                     {
-                        //We are looking for an allie
-                        if (hit.collider.GetComponent<AllieUnit>() != null)
-                        {
-                            found = true;
-                            return hit.collider.GetComponent<AllieUnit>();
-                        }
+                        return null;
                     }
                 }
                 i++;
@@ -347,9 +342,9 @@ public class GameRTSController : MonoBehaviour
     ///Handle unit selection by adding them to the selectedUnit list
     ///and set the unit as selected
     ///</summary>
-    private void selectUnit(AllieUnit u)
+    private void selectUnit(Unit u)
     {
-        if (!selectedUnit.Contains(u))
+        if (!selectedUnit.Contains(u) && u.ally)
         {
             u.setSelected(u);
             selectedUnit.Add(u);

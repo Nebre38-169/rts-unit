@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "New building", menuName = "RTS/Building")]
-public class Building : ScriptableObject
+public class BuildingHolder : ScriptableObject
 {
     public Sprite icon;
     public GameObject prefabs;
