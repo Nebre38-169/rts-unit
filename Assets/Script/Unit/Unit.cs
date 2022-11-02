@@ -19,7 +19,7 @@ public enum Order
 /// Handle order execution for move, attack and idle.
 /// Handle movement and fight, handle following a target and loosing the target
 /// </summary>
-public class Unit : Target
+public class Unit : Target,OpponentInterface
 {
     public float speed = 5f;
     //This argument is use to smooth the path
@@ -213,7 +213,7 @@ public class Unit : Target
     private void OnTriggerEnter(Collider other)
     {
         Target u = other.GetComponent<Target>();
-        if (u != null && isEnemy(u) && target == null)
+        if (u != null && Utils.isEnemy(this,u) && target == null)
         {
             debugMessage("Found target " + u.gameObject.name);
             setTarget(u);
@@ -672,13 +672,8 @@ public class Unit : Target
         }
     }
 
-    private bool isEnemy(Target u)
+    public void unSetTarget(Target target)
     {
-        return ally != u.ally;
-    }
-    
-    private bool isAlly(Target u)
-    {
-        return !isEnemy(u);
+        this.unSetTarget();
     }
 }

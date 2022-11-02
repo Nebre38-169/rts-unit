@@ -25,4 +25,14 @@ public class Utils
             return new Vector3();
         }
     }
+
+    static public bool isEnemy(Target source,Target target)
+    {
+        return source.ally != target.ally;
+    }
+
+    static public bool isAlly(Target source,Target target)
+    {
+        return !isEnemy(source,target);
+    }
 }

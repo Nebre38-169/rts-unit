@@ -10,29 +10,29 @@ public abstract class Target : MonoBehaviour
     public bool debug;
 
     protected float currentLife;
-    protected List<Unit> opponents;
+    protected List<OpponentInterface> opponents;
 
     protected void Awake()
     {
         currentLife = maxLife;
-        opponents = new List<Unit>();
+        opponents = new List<OpponentInterface>();
     }
 
-    public void addOpponent(Unit u)
+    public void addOpponent(OpponentInterface u)
     {
         if (!opponents.Contains(u)) { opponents.Add(u); }
     }
 
-    public void removeOpponent(Unit u)
+    public void removeOpponent(OpponentInterface u)
     {
         if (opponents.Contains(u)) { opponents.Remove(u); }
     }
 
     public void onDeath()
     {
-        foreach(Unit u in opponents)
+        foreach(OpponentInterface u in opponents)
         {
-            u.unSetTarget();
+            u.unSetTarget(this);
         }
         Destroy(this.gameObject);
     }
