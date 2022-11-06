@@ -12,9 +12,7 @@ public class RessourceManager : MonoBehaviour
 {
     //Hold every ressource that must be counted
     public List<Ressource> ressources;
-    //Use for UI
-    public RessourceDiv prefabs;
-    public GameObject ressourcePanel;
+    [SerializeField] public UIManager manager;
     //At index i, indicates quantity of ressource i
     private List<int> ressourceQuantities;
     //Every depot is stored here until it is destroyed
@@ -36,17 +34,13 @@ public class RessourceManager : MonoBehaviour
         for(int i = 0; i < ressources.Count; i++)
         {
             ressourceQuantities.Add(0);
-            RessourceDiv div = Instantiate<RessourceDiv>(prefabs);
-            div.transform.SetParent(ressourcePanel.transform, false);
-            div.updateAmount(0);
-            div.updateImage(ressources[i].icon);
-            displays.Add(div);
         }
     }
 
     private void Start()
     {
         gameRTSBuilder.onRessourceUpdate(calculQuantity());
+        manager.generetaRessourceDiv(ressources.ToArray());
     }
 
     private IDictionary<Ressource, int> calculQuantity()
@@ -87,7 +81,7 @@ public class RessourceManager : MonoBehaviour
         if(index > -1)
         {
             ressourceQuantities[index] += quantity;
-            displays[index].updateAmount(ressourceQuantities[index]);
+            manager.updateOneRessource(index, ressourceQuantities[index]);
             gameRTSBuilder.onRessourceUpdate(calculQuantity());
         }
     }
@@ -98,7 +92,7 @@ public class RessourceManager : MonoBehaviour
         if(index > -1)
         {
             ressourceQuantities[index] -= quantity;
-            displays[index].updateAmount(ressourceQuantities[index]);
+            manager.updateOneRessource(index, ressourceQuantities[index]);
             gameRTSBuilder.onRessourceUpdate(calculQuantity());
         }
     }
