@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 277243883}
   - component: {fileID: 277243885}
   - component: {fileID: 277243884}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TargetDetector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -69,7 +69,7 @@ GameObject:
   - component: {fileID: 5772298810224364616}
   - component: {fileID: 5772298810224364622}
   - component: {fileID: 5772298810224364623}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: RessourceDetector
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitName: Base Unit
   prefab: {fileID: 1321373111389417994, guid: 4e4e372c18c314346b31eb30352c8c4c, type: 3}
-  icon: {fileID: 1541747401, guid: 0236c523728d3b54d9f36ef234feb56f, type: 3}
+  icon: {fileID: -1196378334, guid: fde1b171067b565449f849b57599acb4, type: 3}
   neededRessource:
   - {fileID: 11400000, guid: 6525ab71df3871449b0e4005cc33bc72, type: 2}
   cost: 05000000

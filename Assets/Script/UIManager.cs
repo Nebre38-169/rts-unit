@@ -19,6 +19,7 @@ public class UIManager : MonoBehaviour
     private List<UnitButton> unitButtons;
     private List<QueueSlot> queueSlots;
     private GameRTSBuilder builder;
+    private RessourceManager ressourceManager;
     private Caserne currentCaserne;
 
     private void Awake()
@@ -30,6 +31,8 @@ public class UIManager : MonoBehaviour
         QueueSlot[] q = GetComponentsInChildren<QueueSlot>();
         if (q == null || q.Length < 9) { throw new System.Exception("Missing slot on UI"); }
         else { queueSlots = new List<QueueSlot>(q); }
+        ressourceManager = FindObjectOfType<RessourceManager>();
+        if(ressourceManager == null) { throw new System.Exception("Missing Ressource Manager in scene"); }
         unitButtons = new List<UnitButton>();
         activateBuildingUI();
         initBuildingUI();
@@ -73,6 +76,7 @@ public class UIManager : MonoBehaviour
         setQueue(queue);
         resetSelectionPanel();
         setSelectionPanel(unitList);
+        onRessourceUpdate(ressourceManager.calculQuantity());
     }
 
     public void deactivateCaserneUI()
@@ -84,6 +88,30 @@ public class UIManager : MonoBehaviour
     {
         resetQueue();
         setQueue(queue);
+    }
+
+    public void addUnitToQueue(int index)
+    {
+        currentCaserne.addUnitToQueue(index);
+    }
+
+    public void cancelUnitInQueue(int index)
+    {
+        currentCaserne.removeFromQueue(index);
+    }
+
+    public void onRessourceUpdate(IDictionary<Ressource, int> ressources)
+    {
+        Debug.Log(currentCaserne);
+        if(currentCaserne != null)
+        {
+            bool[] activated = currentCaserne.checkRessource(ressources);
+            for(int i=0;i<activated.Length; i++)
+            {
+                Debug.Log(activated[i]);
+                setUnitButton(i, activated[i]);
+            }
+        }
     }
 
     private void activateBuildingUI()
@@ -117,6 +145,7 @@ public class UIManager : MonoBehaviour
         foreach (QueueSlot q in queueSlots)
         {
             q.resetIcon();
+            q.GetComponent<Button>().onClick.RemoveAllListeners();
         }
     }
 
@@ -134,15 +163,7 @@ public class UIManager : MonoBehaviour
         {
             UnitButton u = Instantiate<UnitButton>(unitButtonPrefab, selectionPanel);
             unitButtons.Add(u);
-            u.setIcon(unitList[i].icon);
-            u.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                if (!u.disabled.enabled)
-                {
-                    Debug.Log("Adding unit to queue");
-                    currentCaserne.addUnitToQueue(i-1);
-                }
-            });
+            u.setup(unitList[i].icon, i);
         }
     }
 
@@ -152,5 +173,10 @@ public class UIManager : MonoBehaviour
             Destroy(unitButtons[i].gameObject);
         }
         unitButtons.Clear();
+    }
+
+    private void setUnitButton(int index, bool active)
+    {
+        unitButtons[index].setDisabled(!active);
     }
 }

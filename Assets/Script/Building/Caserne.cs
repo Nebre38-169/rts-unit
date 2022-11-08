@@ -2,10 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class Caserne : Building
 {
     [SerializeField] public List<UnitHolder> spawnableUnit;
+    [SerializeField] public Transform spawnPoint;
+    [SerializeField] public LayerMask spawnObstacleLayer;
 
     private UIManager manager;
     private SpriteRenderer selectedRenderer;
@@ -42,7 +45,7 @@ public class Caserne : Building
             float coolDown = queuedUnit[0].creationCoolDown;
             if(frameCounter > coolDown * 60)
             {
-                Instantiate(queuedUnit[0].prefab);
+                instantiateUnit(queuedUnit[0]);
                 queuedUnit.RemoveAt(0);
                 manager.queueUpdate(queuedUnit.ToArray());
                 frameCounter = 0;
@@ -61,6 +64,30 @@ public class Caserne : Building
             debugMessage(""+ index);
             queuedUnit.Add(spawnableUnit[index]);
             manager.queueUpdate(queuedUnit.ToArray());
+            for(int i = 0; i < spawnableUnit[i].neededRessource.Count; i++)
+            {
+                ressourceManager.removeRessourceQuantity(
+                    spawnableUnit[index].neededRessource[i],
+                    spawnableUnit[index].cost[i]
+                    );
+            }
+        }
+    }
+
+    public void removeFromQueue(int index)
+    {
+        if(index < queuedUnit.Count)
+        {
+            UnitHolder unit = queuedUnit[index];
+            queuedUnit.RemoveAt(index);
+            manager.queueUpdate(queuedUnit.ToArray());
+            for (int i = 0; i < unit.neededRessource.Count; i++)
+            {
+                ressourceManager.addRessourceQuantity(
+                    spawnableUnit[index].neededRessource[i],
+                    spawnableUnit[index].cost[i]
+                    );
+            }
         }
     }
 
@@ -78,4 +105,40 @@ public class Caserne : Building
         manager.deactivateCaserneUI();
     }
 
+    public bool[] checkRessource(IDictionary<Ressource,int> ressources)
+    {
+        bool[] result = new bool[spawnableUnit.Count];
+        for(int i=0; i < spawnableUnit.Count; i++)
+        {
+            result[i] = spawnableUnit[i].isConstructible(ressources);
+        }
+        return result;
+    }
+
+    private void instantiateUnit(UnitHolder unit)
+    {
+        Vector3 spawnPos = spawnPoint.position;
+        float radius = unit.prefab.GetComponentInChildren<Renderer>().bounds.size.x/2;
+        bool found = false;
+        while (!found)
+        {
+            bool obstacle = false;
+            Collider[] intersecting = Physics.OverlapSphere(spawnPos, radius,spawnObstacleLayer);
+            int i = 0;
+            while (i<intersecting.Length && !obstacle)
+            {
+                //debugMessage(intersecting[i].gameObject.name);
+                //debugMessage(intersecting[i].ToString());
+                obstacle = intersecting[i].GetType() == typeof(CapsuleCollider) || intersecting[i].GetType() == typeof(BoxCollider);
+                i++;
+            }
+            if (obstacle)
+            {
+                debugMessage("Increment");
+                spawnPos = spawnPos + new Vector3(radius, 0, 0);
+            }
+            else { found = true; }
+        }
+        Instantiate(queuedUnit[0].prefab, spawnPos, Quaternion.identity);
+    }
 }

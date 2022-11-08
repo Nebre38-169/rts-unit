@@ -17,7 +17,6 @@ public class RessourceManager : MonoBehaviour
     public List<int> ressourceQuantities;
     //Every depot is stored here until it is destroyed
     private List<Depot> depots;
-    private List<RessourceDiv> displays;
     private GameRTSBuilder gameRTSBuilder;
 
     private void Awake()
@@ -29,7 +28,6 @@ public class RessourceManager : MonoBehaviour
         }
         ressourceQuantities = new List<int>();
         depots = new List<Depot>();
-        displays = new List<RessourceDiv>();
         //On startup, create a RessourceDiv and a null quantity for every ressource
         for(int i = 0; i < ressources.Count; i++)
         {
@@ -41,9 +39,10 @@ public class RessourceManager : MonoBehaviour
     {
         gameRTSBuilder.onRessourceUpdate(calculQuantity());
         manager.generetaRessourceDiv(ressources.ToArray());
+        manager.onRessourceUpdate(calculQuantity());
     }
 
-    private IDictionary<Ressource, int> calculQuantity()
+    public IDictionary<Ressource, int> calculQuantity()
     {
         IDictionary<Ressource, int> quantity = new Dictionary<Ressource, int>();
         for(int i = 0; i < ressources.Count; i++)
@@ -82,6 +81,7 @@ public class RessourceManager : MonoBehaviour
         {
             ressourceQuantities[index] += quantity;
             manager.updateOneRessource(index, ressourceQuantities[index]);
+            manager.onRessourceUpdate(calculQuantity());
             gameRTSBuilder.onRessourceUpdate(calculQuantity());
         }
     }
@@ -93,6 +93,7 @@ public class RessourceManager : MonoBehaviour
         {
             ressourceQuantities[index] -= quantity;
             manager.updateOneRessource(index, ressourceQuantities[index]);
+            manager.onRessourceUpdate(calculQuantity());
             gameRTSBuilder.onRessourceUpdate(calculQuantity());
         }
     }
