@@ -24,9 +24,8 @@ public class GameRTSController : MonoBehaviour
     //Select the panel use for UI representation.
     //It must containt a rectangle highligthing choosen unit
     [SerializeField] public RectTransform selectionPanel;
+    [SerializeField] public LayerMask uiLayer;
 
-    //Use to simulate mouse position in the world
-    private Plane floor;
     //Store position of the mouse in the world on left click down
     private Vector3 startPosition;
     //Store position of the mouse in the worl on left click up 
@@ -37,12 +36,13 @@ public class GameRTSController : MonoBehaviour
     private MeshFilter pyramid;
     private MeshCollider selectionCollider;
     //Store selectionned unit
-    private List<AllieUnit> selectedUnit;
+    private List<Unit> selectedUnit;
+    private Caserne selectedCaserne;
     
 
     private void Awake()
     {
-        floor = new Plane(Vector3.up, 0);
+        
         
         selectionCollider = GetComponent<MeshCollider>();
         pyramid = GetComponent<MeshFilter>();
@@ -51,7 +51,7 @@ public class GameRTSController : MonoBehaviour
         MeshRenderer render = GetComponent<MeshRenderer>();
         render.enabled = debug;
         
-        selectedUnit = new List<AllieUnit>();
+        selectedUnit = new List<Unit>();
         
         selectionPanel.GetComponent<Image>().enabled = false;
     }
@@ -59,13 +59,17 @@ public class GameRTSController : MonoBehaviour
     private void Update()
     {
         //Selection start when the left click is pressed
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !Utils.isPointerOverUIElement())
         {
             //We empty the unit list & reset the selection pyramid
             resetSelection();
             resetSelectionPyramid();
+            if (selectedCaserne != null) { 
+                selectedCaserne.onUnSelected();
+                selectedCaserne = null;
+            }
             //We get  position of the mouse on the floor and sotres it.
-            startPosition = getMousePositionOnFloor();
+            startPosition = Utils.getMousePositionOnFloor();
             //We get position of the mouse on screen and activate UI
             startScreenPosition = Input.mousePosition;
             selectionPanel.GetComponent<Image>().enabled = true;
@@ -80,7 +84,7 @@ public class GameRTSController : MonoBehaviour
         //The selection end when the left click is released
         if (Input.GetMouseButtonUp(0))
         {
-            endPosition = getMousePositionOnFloor();
+            endPosition = Utils.getMousePositionOnFloor();
             selectionPanel.GetComponent<Image>().enabled = false;
             //We check if the start and end world mouse position are different to avoid an non-volumic mesh
             if (endPosition != startPosition) generateSelectionPyramid(startPosition, endPosition);
@@ -88,7 +92,13 @@ public class GameRTSController : MonoBehaviour
             {
                 //If the end and the start position are the same, we just check for a Allie Unit and set it selected
                 Unit u = isAUnitPointed(false);
-                if(u != null) { selectUnit((AllieUnit)u); }
+                if(u != null) { selectUnit(u); }
+                Caserne c = isACasernePointer();
+                if(c != null)
+                {
+                    selectedCaserne = c;
+                    selectedCaserne.onSelected();
+                }
             }
         }
 
@@ -101,6 +111,7 @@ public class GameRTSController : MonoBehaviour
              */
             Unit u = isAUnitPointed(true);
             RessourceSource r = isARessourcePointed();
+            Builder d = isABuildingSitePointed();
             if(u != null)
             {
                 foreach(Unit selectU in selectedUnit)
@@ -115,12 +126,19 @@ public class GameRTSController : MonoBehaviour
                     selectU.setTargetRessource(r,true);
                 }
             }
+            else if(d != null)
+            {
+                Debug.Log("Construction selected");
+                foreach(Unit selectU in selectedUnit)
+                {
+                    selectU.setBuildingTarget(d);
+                }
+            }
             else
             {
-                Vector3 dir = getMousePositionOnFloor();
+                Vector3 dir = Utils.getMousePositionOnFloor();
                 calculatePosition(dir);
             }
-            
         }
     }
 
@@ -129,7 +147,7 @@ public class GameRTSController : MonoBehaviour
         if(other is CapsuleCollider)
         {
             //When the pyramid is generated, collider behave as if unit entered it.
-            AllieUnit u = other.GetComponent<AllieUnit>();
+            Unit u = other.GetComponent<Unit>();
             if (u != null) selectUnit(u);
         }
         
@@ -184,25 +202,49 @@ public class GameRTSController : MonoBehaviour
             while (i < hits.Length && !found)
             {
                 RaycastHit hit = hits[i];
-                if (hit.collider is CapsuleCollider)
+                if (hit.collider is CapsuleCollider && hit.collider.GetComponent<Unit>() != null)
                 {
-                    if (enemy)
+                    Unit unit = hit.collider.GetComponent<Unit>();
+                    if(unit.ally && !enemy)
                     {
-                        //We are looking for an enemey
-                        if (hit.collider.GetComponent<EnemyUnit>() != null)
-                        {
-                            found = true;
-                            return hit.collider.GetComponent<EnemyUnit>();
-                        }
+                        return unit;
+                    }
+                    else if (!unit.ally && enemy)
+                    {
+                        return unit;
                     }
                     else
                     {
-                        //We are looking for an allie
-                        if (hit.collider.GetComponent<AllieUnit>() != null)
-                        {
-                            found = true;
-                            return hit.collider.GetComponent<AllieUnit>();
-                        }
+                        return null;
+                    }
+                }
+                i++;
+            }
+        }
+        return null;
+    }
+
+    private Caserne isACasernePointer()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
+        if (hits.Length > 0)
+        {
+            int i = 0;
+            bool found = false;
+            while (i < hits.Length && !found)
+            {
+                RaycastHit hit = hits[i];
+                if (hit.collider.GetComponent<Caserne>() != null)
+                {
+                    Caserne unit = hit.collider.GetComponent<Caserne>();
+                    if (unit.ally)
+                    {
+                        return unit;
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
                 i++;
@@ -229,6 +271,29 @@ public class GameRTSController : MonoBehaviour
             while (i < hits.Length && !found)
             {
                 RessourceSource r = hits[i].collider.GetComponent<RessourceSource>();
+                if (r)
+                {
+                    Debug.Log(hits[i].collider);
+                    found = true;
+                    return r;
+                }
+                i++;
+            }
+        }
+        return null;
+    }
+
+    private Builder isABuildingSitePointed()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
+        if(hits.Length > 0)
+        {
+            int i = 0;
+            bool found = false;
+            while(i<hits.Length && !found)
+            {
+                Builder r = hits[i].collider.GetComponent<Builder>();
                 if (r)
                 {
                     found = true;
@@ -317,9 +382,9 @@ public class GameRTSController : MonoBehaviour
     ///Handle unit selection by adding them to the selectedUnit list
     ///and set the unit as selected
     ///</summary>
-    private void selectUnit(AllieUnit u)
+    private void selectUnit(Unit u)
     {
-        if (!selectedUnit.Contains(u))
+        if (!selectedUnit.Contains(u) && u.ally)
         {
             u.setSelected(u);
             selectedUnit.Add(u);
@@ -338,29 +403,6 @@ public class GameRTSController : MonoBehaviour
             u.setSelected(false);
         }
         selectedUnit.Clear();
-    }
-
-    ///<summary>
-    ///Function getMousePositionOnFloor
-    ///Gives the position of the mouse on a infinit
-    ///plane location at y=0.
-    ///Could be moved in a utility global class
-    ///</summary>
-    private Vector3 getMousePositionOnFloor()
-    {
-        //We convert the 2D mouse position by casting a ray to the floor object.
-        // -> Could be better to use a terran object.
-        float distance;
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (floor.Raycast(ray, out distance))
-        {
-            //On garde en mémoire la position de la sourie dans le monde.
-            return ray.GetPoint(distance);
-        }
-        else
-        {
-            return new Vector3();
-        }
     }
     
     ///<summary>

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 /// <summary>
@@ -11,31 +12,25 @@ using UnityEngine;
 /// Made by : Nebre 38-169
 /// Last Update : 25/10/2022 by Nebre 38-169
 /// </summary>
-public class Depot : MonoBehaviour
+public class Depot : Building
 {
     //Store each ressource than can be stored in this depot
     public List<Ressource> storedRessource;
     //Store the manager, which handle UI and total of ressources
     [SerializeField] public RessourceManager manager;
 
-    /*
-     * Hold the current quantity of each ressource, 
-     * the quantity at index i is the ressource at index i
-     * in the storedRessource list
-     */
-    private List<int> currentQuantity;
     //Store harvester in case this building is destroyed
     private List<Unit> harvester;
+    
 
-    private void Awake()
+    new private void Awake()
     {
+        base.Awake();
         harvester = new List<Unit>();
-        currentQuantity = new List<int>();
-        foreach(Ressource ressource in storedRessource)
+        if(manager == null)
         {
-            currentQuantity.Add(0);
+            manager = GameObject.FindObjectOfType<RessourceManager>();
         }
-        
     }
 
     //We do not add the depot in the Awake function as the manager could be not initialised yet
@@ -53,7 +48,11 @@ public class Depot : MonoBehaviour
     /// <returns>True if the ressource can be stored here, false otherwise</returns>
     public bool isRessourceUnloadable(Ressource r)
     {
-        return storedRessource.Contains(r);
+        if (constructed)
+        {
+            return storedRessource.Contains(r);
+        }
+        return false;
     }
 
     /// <summary>
@@ -63,7 +62,10 @@ public class Depot : MonoBehaviour
     /// <param name="u"></param>
     public void addHarvester(Unit u)
     {
-        if (!harvester.Contains(u)) { harvester.Add(u); }
+        if (constructed)
+        {
+            if (!harvester.Contains(u)) { harvester.Add(u); }
+        }
     }
 
     /// <summary>
@@ -73,28 +75,9 @@ public class Depot : MonoBehaviour
     /// <param name="u"></param>
     public void removeHarvest(Unit u)
     {
-        if (harvester.Contains(u))
+        if (harvester.Contains(u) && constructed)
         {
             harvester.Remove(u);
-        }
-    }
-
-    /// <summary>
-    /// <para><c>Function getRessourceQuantity</c></para>
-    /// Returns the quantity of the specified ressource,
-    /// if the ressource is not stored returns -1
-    /// </summary>
-    /// <param name="r">A ressource</param>
-    /// <returns></returns>
-    public int getRessourceQuantity(Ressource r)
-    {
-        int index = storedRessource.IndexOf(r);
-        if(index > -1)
-        {
-            return currentQuantity[index];
-        } else
-        {
-            return -1;
         }
     }
 
@@ -110,12 +93,15 @@ public class Depot : MonoBehaviour
     /// <returns>Returns true if the quantity was added, false otherwise</returns>
     public bool onUnLoad(Ressource r, int quantity)
     {
-        int index = storedRessource.IndexOf(r);
-        if(index > -1)
+        if (constructed)
         {
-            currentQuantity[index] += quantity;
-            manager.onQuantityUpdate(r);
-            return true;
+            int index = storedRessource.IndexOf(r);
+            if (index > -1)
+            {
+                manager.addRessourceQuantity(storedRessource[index], quantity);
+                return true;
+            }
+            return false;
         }
         return false;
     }

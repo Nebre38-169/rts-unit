@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// <para><c>Class Ressource Trigger</c>,herits from MonoBehaviour</para>
+/// <para><c>Class Unit Trigger</c>,herits from MonoBehaviour</para>
 /// <para>Used to detect ressource or depot in range,
 /// should be hold by an empty object, child of the unit</para>
 /// </summary>
@@ -13,17 +13,21 @@ public class RessourceTrigger : MonoBehaviour
     private List<RessourceSource> ressourcesInRange;
     //Stores every depot in range
     private List<Depot> depotInRange;
+    private List<Builder> buildInRange;
 
     private void Awake()
     {
         ressourcesInRange = new List<RessourceSource>();
         depotInRange = new List<Depot>();
+        buildInRange = new List<Builder>();
     }
 
     private void OnTriggerEnter(Collider other)
     {
         RessourceSource r = other.GetComponent<RessourceSource>();
         Depot d = other.GetComponent<Depot>();
+        Builder b = other.GetComponent<Builder>();
+        Target t = other.GetComponent<Target>();
         //If a source enter in the trigger, the source is in range
         if (r != null)
         {
@@ -33,11 +37,18 @@ public class RessourceTrigger : MonoBehaviour
             }
         }
         //If a depot enter in the trigger, the depot is in range
-        else if (d != null)
+        if (d != null)
         {
             if (!depotInRange.Contains(d))
             {
                 depotInRange.Add(d);
+            }
+        }
+        if(b != null)
+        {
+            if (!buildInRange.Contains(b))
+            {
+                buildInRange.Add(b);
             }
         }
     }
@@ -46,6 +57,8 @@ public class RessourceTrigger : MonoBehaviour
     {
         RessourceSource r = other.GetComponent<RessourceSource>();
         Depot d = other.GetComponent<Depot>();
+        Builder b = other.GetComponent<Builder>();
+        Target t = other.GetComponent<Target>();
         //If a source leave the trigger, the source is no longer in range
         if (r != null)
         {
@@ -55,11 +68,18 @@ public class RessourceTrigger : MonoBehaviour
             }
         }
         //If a depot leave the trigger, the depot is no longer in range
-        else if (d != null)
+        if (d != null)
         {
             if (depotInRange.Contains(d))
             {
                 depotInRange.Remove(d);
+            }
+        }
+        if(b != null)
+        {
+            if (buildInRange.Contains(b))
+            {
+                buildInRange.Remove(b);
             }
         }
     }
@@ -88,5 +108,8 @@ public class RessourceTrigger : MonoBehaviour
         return depotInRange.Contains(target);
     }
 
-
+    public bool isBuildInRange(Builder target)
+    {
+        return buildInRange.Contains(target);
+    }
 }
