@@ -14,7 +14,7 @@ public class RessourceManager : MonoBehaviour
     public List<Ressource> ressources;
     [SerializeField] public UIManager manager;
     //At index i, indicates quantity of ressource i
-    private List<int> ressourceQuantities;
+    public List<int> ressourceQuantities;
     //Every depot is stored here until it is destroyed
     private List<Depot> depots;
     private List<RessourceDiv> displays;

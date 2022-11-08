@@ -24,6 +24,7 @@ public class GameRTSController : MonoBehaviour
     //Select the panel use for UI representation.
     //It must containt a rectangle highligthing choosen unit
     [SerializeField] public RectTransform selectionPanel;
+    [SerializeField] public LayerMask uiLayer;
 
     //Store position of the mouse in the world on left click down
     private Vector3 startPosition;
@@ -36,6 +37,7 @@ public class GameRTSController : MonoBehaviour
     private MeshCollider selectionCollider;
     //Store selectionned unit
     private List<Unit> selectedUnit;
+    private Caserne selectedCaserne;
     
 
     private void Awake()
@@ -57,11 +59,15 @@ public class GameRTSController : MonoBehaviour
     private void Update()
     {
         //Selection start when the left click is pressed
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !Utils.isPointerOverUIElement())
         {
             //We empty the unit list & reset the selection pyramid
             resetSelection();
             resetSelectionPyramid();
+            if (selectedCaserne != null) { 
+                selectedCaserne.onUnSelected();
+                selectedCaserne = null;
+            }
             //We get  position of the mouse on the floor and sotres it.
             startPosition = Utils.getMousePositionOnFloor();
             //We get position of the mouse on screen and activate UI
@@ -87,6 +93,12 @@ public class GameRTSController : MonoBehaviour
                 //If the end and the start position are the same, we just check for a Allie Unit and set it selected
                 Unit u = isAUnitPointed(false);
                 if(u != null) { selectUnit(u); }
+                Caserne c = isACasernePointer();
+                if(c != null)
+                {
+                    selectedCaserne = c;
+                    selectedCaserne.onSelected();
+                }
             }
         }
 
@@ -127,7 +139,6 @@ public class GameRTSController : MonoBehaviour
                 Vector3 dir = Utils.getMousePositionOnFloor();
                 calculatePosition(dir);
             }
-            
         }
     }
 
@@ -199,6 +210,35 @@ public class GameRTSController : MonoBehaviour
                         return unit;
                     }
                     else if (!unit.ally && enemy)
+                    {
+                        return unit;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                i++;
+            }
+        }
+        return null;
+    }
+
+    private Caserne isACasernePointer()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000);
+        if (hits.Length > 0)
+        {
+            int i = 0;
+            bool found = false;
+            while (i < hits.Length && !found)
+            {
+                RaycastHit hit = hits[i];
+                if (hit.collider.GetComponent<Caserne>() != null)
+                {
+                    Caserne unit = hit.collider.GetComponent<Caserne>();
+                    if (unit.ally)
                     {
                         return unit;
                     }

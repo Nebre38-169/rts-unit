@@ -80,7 +80,7 @@ public class GameRTSBuilder : MonoBehaviour
         Collider[] collision = Physics.OverlapBox(pos, buildingBoxCollider.size/2, Quaternion.identity,spaceDetectionMask);
         List<Collider> collisions = new List<Collider>();
         foreach(Collider col in collision) {
-            if((col.gameObject.name.Contains("unit") || col.gameObject.name.Contains("Detector")) && col.GetType() == typeof(SphereCollider))
+            if((col.gameObject.name.Contains("unit") || col.gameObject.name.Contains("Detector") || col.gameObject.name.Contains("Turret")) && col.GetType() == typeof(SphereCollider))
             {
                 //nothing
             }

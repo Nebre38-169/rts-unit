@@ -6,10 +6,9 @@ using UnityEngine.UI;
 public class Caserne : Building
 {
     [SerializeField] public List<UnitHolder> spawnableUnit;
-    [SerializeField] public UnitButton unitButton;
 
-    private GameObject unitPanel;
-    private List<UnitButton> unitButtons;
+    private UIManager manager;
+    private SpriteRenderer selectedRenderer;
     private List<UnitHolder> queuedUnit;
     private RessourceManager ressourceManager;
     private float frameCounter = 0;
@@ -17,25 +16,14 @@ public class Caserne : Building
     new private void Awake()
     {
         base.Awake();
-        unitPanel = GameObject.Find("UnitPanel");
-        if(unitPanel == null) { throw new System.Exception("Scene missing a unit pane"); }
+        manager = FindObjectOfType<UIManager>();
+        if(manager == null) { throw new System.Exception("Scene is missing UI manager"); }
         ressourceManager = FindObjectOfType<RessourceManager>();
         if(ressourceManager == null ) { throw new System.Exception("Scene is missing Ressource manager"); }
-        unitButtons = new List<UnitButton>();
-        foreach( UnitHolder unitHolder in spawnableUnit )
-        {
-            UnitButton item = Instantiate(unitButton);
-            unitButtons.Add(item);
-            item.transform.SetParent(unitPanel.transform);
-            item.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                if (!item.disabled.IsActive())
-                {
-                    //Consommation de ressource
-                    //Ajout de l'unité à la liste des unités à générer
-                }
-            });
-        }
+        selectedRenderer = GetComponentInChildren<SpriteRenderer>();
+        if(selectedRenderer == null) { throw new System.Exception("Caserne " + gameObject.name + " missing spriterendere"); }
+        else { selectedRenderer.enabled = false; }
+        queuedUnit = new List<UnitHolder>();
     }
 
     /* Doit gérer la possibilité de plusieurs caserne
@@ -55,6 +43,8 @@ public class Caserne : Building
             if(frameCounter > coolDown * 60)
             {
                 Instantiate(queuedUnit[0].prefab);
+                queuedUnit.RemoveAt(0);
+                manager.queueUpdate(queuedUnit.ToArray());
                 frameCounter = 0;
             }
             else
@@ -64,12 +54,28 @@ public class Caserne : Building
         }
     }
 
-    public void addUnitToQueue(UnitHolder u)
+    public void addUnitToQueue(int index)
     {
         if(queuedUnit.Count < 10)
         {
-            queuedUnit.Add(u);
+            debugMessage(""+ index);
+            queuedUnit.Add(spawnableUnit[index]);
+            manager.queueUpdate(queuedUnit.ToArray());
         }
+    }
+
+    public void onSelected()
+    {
+        debugMessage("Selected");
+        selectedRenderer.enabled = true;
+        manager.activateCaserneUI(spawnableUnit.ToArray(), queuedUnit.ToArray(), this);
+    }
+
+    public void onUnSelected()
+    {
+        debugMessage("Unselected");
+        selectedRenderer.enabled = false;
+        manager.deactivateCaserneUI();
     }
 
 }
