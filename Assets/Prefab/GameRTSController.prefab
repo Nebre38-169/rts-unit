@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 50818193829560639}
   - component: {fileID: 50818193829560576}
   - component: {fileID: 50818193829560577}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: GameRTSController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -52,6 +52,9 @@ MonoBehaviour:
   spaceBetweenLigns: 2
   spaceBetweenUnits: 2
   selectionPanel: {fileID: 0}
+  uiLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!64 &50818193829560639
 MeshCollider:
   m_ObjectHideFlags: 0

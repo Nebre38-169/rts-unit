@@ -23,7 +23,7 @@ This script handle selection and order to unit. It must set in an empty gameObje
 
 ## 2. Unit
 
-Unit is the base for allies and enemies unities. They are state machine with 4 state : Idle, Move, Attack, Force Attack, Harvest, Bring. Each unit has is own life, speed, damage, ranges and cooldown. They are the most basic unit, they can fight and harvest ressource.
+Unit is the base for allies and enemies unities. They are state machine with 4 state : Idle, Move, Attack, Force Attack, Harvest, Bring. Each unit has is own life, speed, damage, ranges and cooldown. They are the most basic unit, they can fight and harvest ressource. To create a new unit object, create a blank one that holds the unit script. As child of it, add a Ressource Detector, a Target Detector and GFX. See prefabs folder for more information.
 
 - Order :
   - Idle : do nothing and not move
@@ -46,6 +46,8 @@ Unit is the base for allies and enemies unities. They are state machine with 4 s
   - Max Load (*float*): maximum weight the can carry
   - Unload Packet (*int*): number of ressource the unit can unload at once
 
+As the unit script herits from the Target class, it alos herits from all its settings such as max life and Ally.
+
 ## 3. Ressource
 
 Ressource is a scriptable object. It describe a ressource can be gathered in a Ressource Source and droped into a Depot. It has a name, a weight and a icon.
@@ -66,21 +68,85 @@ Depot describes a place where unit can unload ressources they have gather. They 
 - Settings :
   - StoredRessource (*List\<Ressource>*): Ressource(s) that can be stored in the depot
   - Manager (*RessourceManager*): Scripts that handle UI and total ressource count
+  
+As Caserne script herits from Building class, it herits from its settings such as max life, ally, constructed and initialMat.
 
-## 6. Ressource Manager
+## 6. Caserne
+
+Caserne creates unit using ressources. Each caserne as its creation queue and can create a list of unit.
+
+- Settings :
+  - Spawnable Unit (*List\<UnitHolder>*) : List of unit the caserne can spawn
+  - Spawn Point (*Transform*) : Child object where unit spawn by default
+  - Spawn Obstacke Layer : Layer to detect collision when spawning unit. If there is collision with elements of this layer, the unit will spawn futher in x direction.
+ 
+As Caserne script herits from Building class, it herits from its settings such as max life, ally, constructed and initialMat.
+
+## 7. Turret
+
+Turret are buildings that shoots at incomming enemy.
+
+- Settings:
+  - Attack Range (*float*): range the turret can attack
+  - Damage (*float*) : how much damage an attack deals to the target
+  - Cool Down Duration (*float*) : time in seconds between two attacks
+
+As Caserne script herits from Building class, it herits from its settings such as max life, ally, constructed and initialMat.
+
+## 8. Ressource Manager
 
 Ressource Manager is a global scripts that hold every depot and every ressource used in the game and update UI when the amount of ressources changes. On startup, it generates the UI using RessourceDiv.
 
 - Settings :
   - Ressourcs (*List\<Ressource>*) : Ressource(s) that can be used in the game
   - Prefabs (*RessourceDiv*) : UI element that is used to show the ressource and how much you have of it
-  - Ressource Panel (*GameObject*): UI element where RessourceDiv will be placed
 
-## 7. Ressource Detector/Trigger
+## 9. Ressource Detector/Trigger
 
 Ressource detector is the empty gameobject that hold the Ressource Trigger script. It handles range detection for ressource source and depot. It must be placed as child object of a unit.
 
 If you need an example, this Unit project is a made of a single scene using all those components.
+
+## 10. UIManager
+
+The UI Manager handles creating and updating all UI elements. It holds UI elements for building construction and casernes.
+
+- Settings :
+  - Ressource Panel (*RectTransform*): Panel where *RessourceDiv* will appeare
+  - Building Panel (*RectTransform*): Panel where *BuildingButton* will appeare
+  - Caserne Panel (*RectTranform*) : Panel where the creation queue will appeare
+  - Ressource Div Prefab (*RessourceDiv*) : Prefab gameOjbect that handles displaying ressource icon and count
+  - Building Button Prefab (*BuildingButton*) : Prefab gameObject that handles displaying the building icon and handles interaction.
+  - Unit Button Prefab (*UnitButton*) : Prefab gameObject that handles displayin the unit icon and handles interaction.
+  
+## 11. GameRTSBuilder
+
+The GameRTSBuilder handles interaction with player to construct buidling. When the order is given from the UI Manager, it use a placeholder the size of the selected building and sticks it to the mouse position. When the placeholder is green, the building can be placed. To construct building, it places a builder thath holds the building and make it appears from the ground.
+
+- Settings :
+  - Building (*List\<BuildingHolder>*) : List of building that can be constructed.
+  - Builder Prefab (*Builder*) : Will be placed to handle construction
+  - PlaceHolder (*GameObject*) : Placeholder to represent the size of the futur build
+  - Space Detection Mask (*LayerMask*) : Layer where collision will be detected to place building
+
+## 12. Target
+
+Abstract class that describe general behaviour of target elements. Building and unit herits from those.
+
+- Settings :
+  - maxLife (*float*) : Maximum life of a target
+  - ally (*boolean*) : Indicates if the target if with the player or not
+  - debug (*boolean*) : Indicates if the target will display debug message
+
+## 13. Other
+
+- BuildingButton :UI element to hold icon and handles selected and disable state
+- BuildingHolder : Scriptable objects to store icon, name and cost of the building
+- RessourceObserver : Interface of all Observer of ressources count
+- OpponentInterface : Interface for opponent, that target a Target
+- QueueSlot : UI element to holds icon and handle interaction within the creation queue
+- Utils : general function regarding mouse position and ally/enemy relation
+
 
 ## Release
 
@@ -95,3 +161,7 @@ If you need an example, this Unit project is a made of a single scene using all 
   - Added Ressource, RessourceSource, RessourceDetector/Trigger and Depot to handle ressource gathering logic
   - Modified GameRTSController to target RessourceSource
   - Made Prefabs of every logic brics used in this project
+- 0.4.0
+  - Added Caserne, UIManager, Builder, GameRTSBuilder and ally/enemy logic.
+  - UI was improved, it is all handled by the UIManager that communicates with Caserne and Depot
+  - Added the possibility to construct building, such as caserne, depot and turret.

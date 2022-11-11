@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39c0514ae47ef074fb6795c1f94f055e, type: 3}
+  m_Name: Depot
+  m_EditorClassIdentifier: 
+  icon: {fileID: -1667036803, guid: fde1b171067b565449f849b57599acb4, type: 3}
+  prefabs: {fileID: 1126224096304954960, guid: dd4af2b067e8f674dbf1fdf4b095ee73, type: 3}
+  constructionDuration: 30
+  needRessource:
+  - {fileID: 11400000, guid: 6525ab71df3871449b0e4005cc33bc72, type: 2}
+  - {fileID: 11400000, guid: f076fb07077cb2447bec941049dbed71, type: 2}
+  cost: 0000000000000000
