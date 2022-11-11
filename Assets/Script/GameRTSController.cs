@@ -24,7 +24,6 @@ public class GameRTSController : MonoBehaviour
     //Select the panel use for UI representation.
     //It must containt a rectangle highligthing choosen unit
     [SerializeField] public RectTransform selectionPanel;
-    [SerializeField] public LayerMask uiLayer;
 
     //Store position of the mouse in the world on left click down
     private Vector3 startPosition;

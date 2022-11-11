@@ -38,7 +38,7 @@ public class TargetTrigger : MonoBehaviour
         Target t = other.GetComponent<Target>();
         if (t != null && targetInRange.Contains(t))
         {
-            targetInRange.Add(t);
+            targetInRange.Remove(t);
         }
     }
 

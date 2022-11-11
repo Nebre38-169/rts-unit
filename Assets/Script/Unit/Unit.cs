@@ -94,6 +94,10 @@ public class Unit : Target,OpponentInterface
 
     protected void FixedUpdate()
     {
+        if(targetSource != null && currentOrder != Order.HARVEST && currentOrder != Order.BRING){
+            targetSource.removeHarvester(this);
+            targetSource = null;
+        }
         //If the unit is idle but carries a load, goes to bring it back
         if(currentOrder == Order.IDLE && currentLoad > 0)
         {
@@ -333,6 +337,7 @@ public class Unit : Target,OpponentInterface
             }
             else
             {
+                targetSource.removeHarvester(this);
                 targetRessource = r.ressource;
                 targetSource = r;
                 r.addHarvester(this);
