@@ -7,6 +7,8 @@ using TMPro;
 /// <summary>
 /// <para><c>Class RessourceDiv</c>, herits from <c>MonoBehaviour</c></para>
 /// Stores UI element and handle update of count and icon for a given ressource
+/// Made by : Nebre 38-169
+/// Last Update : 25/11/2022 by Nebre 38-169
 /// </summary>
 public class RessourceDiv : MonoBehaviour
 {

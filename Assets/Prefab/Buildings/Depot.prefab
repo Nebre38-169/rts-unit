@@ -46,11 +46,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ca60adcfd298a340b1b6d0c48d74e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxLife: 0
+  ally: 1
+  debug: 1
+  constructed: 1
+  initialMat: {fileID: 2100000, guid: 842cf3215c5b91541a200d815c1f3994, type: 2}
   storedRessource:
   - {fileID: 11400000, guid: f076fb07077cb2447bec941049dbed71, type: 2}
   - {fileID: 11400000, guid: 6525ab71df3871449b0e4005cc33bc72, type: 2}
   manager: {fileID: 0}
-  initialMat: {fileID: 2100000, guid: 842cf3215c5b91541a200d815c1f3994, type: 2}
 --- !u!65 &137296176
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -18,4 +18,4 @@ MonoBehaviour:
   needRessource:
   - {fileID: 11400000, guid: 6525ab71df3871449b0e4005cc33bc72, type: 2}
   - {fileID: 11400000, guid: f076fb07077cb2447bec941049dbed71, type: 2}
-  cost: 0500000005000000
+  cost: 0000000000000000

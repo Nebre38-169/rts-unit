@@ -10,7 +10,7 @@ using UnityEngine;
 /// <para>The storedRessource list indicates which ressources can be stored
 /// and the quantity of each is stored in the currenQuantity list</para>
 /// Made by : Nebre 38-169
-/// Last Update : 25/10/2022 by Nebre 38-169
+/// Last Update : 09/11/2022 by Nebre 38-169
 /// </summary>
 public class Depot : Building
 {
@@ -41,7 +41,7 @@ public class Depot : Building
 
     /// <summary>
     /// <para><c>Function isRessourceUnloadable</c></para>
-    /// Indicates wether or not the specified ressource can be unloaded in this depot.
+    /// Indicates whether or not the specified ressource can be unloaded in this depot.
     /// It is done by checking if the ressource appears in the storedRessource list.
     /// </summary>
     /// <param name="r">A ressource to store in this depot</param>
@@ -95,10 +95,12 @@ public class Depot : Building
     {
         if (constructed)
         {
+            debugMessage("Received " + quantity + " of " + r);
             int index = storedRessource.IndexOf(r);
             if (index > -1)
             {
-                manager.addRessourceQuantity(storedRessource[index], quantity);
+                debugMessage("Found ressource in possible storage");
+                manager.addRessources(storedRessource[index], quantity);
                 return true;
             }
             return false;

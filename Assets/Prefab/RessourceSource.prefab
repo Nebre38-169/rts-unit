@@ -143,4 +143,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxQuantity: 10
   givenQuantity: 5
-  ressource: {fileID: 0}
+  ressource: {fileID: 11400000, guid: f076fb07077cb2447bec941049dbed71, type: 2}

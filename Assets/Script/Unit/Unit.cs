@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
+using static Pathfinding.RaycastModifier;
 
 public enum Order
 {
@@ -247,7 +248,7 @@ public class Unit : Target,OpponentInterface
     /// <c>Function setSelected</c>
     /// Handle animation selection (when it is developt)
     /// </summary>
-    /// <param name="selected">Boolean that indicates wether or not the unit is selected</param>
+    /// <param name="selected">Boolean that indicates whether or not the unit is selected</param>
     public void setSelected(bool selected)
     {
         if (selected)
@@ -442,7 +443,7 @@ public class Unit : Target,OpponentInterface
 
     /// <summary>
     /// <para><c>Function isTargetInRange</c></para>
-    /// Indicates wether the target is in attack range or not
+    /// Indicates whether the target is in attack range or not
     /// </summary>
     /// <returns>True if the target is in range, False other wise or if there is no target</returns>
     private bool isTargetInRange()
@@ -493,7 +494,7 @@ public class Unit : Target,OpponentInterface
 
     /// <summary>
     /// <para><c>Function isTargetLost</c></para>
-    /// Indicates wether the target is further than the lost range
+    /// Indicates whether the target is further than the lost range
     /// </summary>
     /// <returns>True if the target is lost, false otherwise and if there is no target</returns>
     private bool isTargetLost()
@@ -604,18 +605,20 @@ public class Unit : Target,OpponentInterface
     /// <param name="d"></param>
     private void unload(Depot d)
     {
+        int unloadQuantity;
         if(currentLoad >= unloadPacket * targetRessource.weight)
         {
-            currentLoad -= unloadPacket * targetRessource.weight;
-            d.onUnLoad(targetRessource, unloadPacket);
+            //currentLoad -= unloadPacket * targetRessource.weight;
+            unloadQuantity = unloadPacket;
         }
         else
         {
-            int quantity = Mathf.RoundToInt(currentLoad / targetRessource.weight);
-            currentLoad -= quantity * targetRessource.weight;
-            d.onUnLoad(targetRessource, quantity);
+            unloadQuantity = Mathf.RoundToInt(currentLoad / targetRessource.weight);
+            //currentLoad -= quantity * targetRessource.weight;
         }
-        
+        debugMessage("Unloading " + unloadQuantity + " of " + targetRessource.name + " in " + d.name);
+        currentLoad -= unloadQuantity * targetRessource.weight;
+        d.onUnLoad(targetRessource, unloadQuantity);
         if (currentLoad <= 0)
         {
             currentLoad = 0;
