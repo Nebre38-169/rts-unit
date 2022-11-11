@@ -6,6 +6,8 @@ using UnityEngine;
 /// <para><c>Class Unit Trigger</c>,herits from MonoBehaviour</para>
 /// <para>Used to detect ressource or depot in range,
 /// should be hold by an empty object, child of the unit</para>
+/// Made by : Nebre 38-169
+/// Last Update : 25/10/2022 by Nebre 38-169
 /// </summary>
 public class RessourceTrigger : MonoBehaviour
 {
@@ -108,6 +110,12 @@ public class RessourceTrigger : MonoBehaviour
         return depotInRange.Contains(target);
     }
 
+    /// <summary>
+    /// <c>Function is Build In Range</c>
+    /// </summary>
+    /// Indicates wheter or not the target builder is in range
+    /// <param name="target"></param>
+    /// <returns>True if the builder is in range, false otherwise</returns>
     public bool isBuildInRange(Builder target)
     {
         return buildInRange.Contains(target);

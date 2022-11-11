@@ -9,7 +9,7 @@ using UnityEngine.UI;
 ///Create a pyramid used to detect collision with unit in a 3D world.
 ///Those unit are then selectionned and order can be given to them.
 ///Made by : Nebre 38-169
-///Last Update : 25/10/2022 by Nebre 38-169
+///Last Update : 09/11/2022 by Nebre 38-169
 ///</summary>
 public class GameRTSController : MonoBehaviour
 {
@@ -65,7 +65,7 @@ public class GameRTSController : MonoBehaviour
             resetSelection();
             resetSelectionPyramid();
             if (selectedCaserne != null) { 
-                selectedCaserne.onUnSelected();
+                selectedCaserne.onUnselected();
                 selectedCaserne = null;
             }
             //We get  position of the mouse on the floor and sotres it.
@@ -224,6 +224,13 @@ public class GameRTSController : MonoBehaviour
         return null;
     }
 
+
+    /// <summary>
+    /// <c>Function is A Caserne Pointer</c>
+    /// Indicates if a caserne was pointed.
+    /// Use a raycast to detect any collider and filter to find a Caserne
+    /// </summary>
+    /// <returns>A Caserne if one was pointed, null otherwise</returns>
     private Caserne isACasernePointer()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -283,6 +290,12 @@ public class GameRTSController : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// <c>Function is A BuildingSitePointed</c>
+    /// Indicates if a building site was pointed.
+    /// Uses a raycastAll and filter result using the builder script
+    /// </summary>
+    /// <returns>A Builder if one was pointed, null otherwise</returns>
     private Builder isABuildingSitePointed()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);

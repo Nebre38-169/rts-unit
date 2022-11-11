@@ -6,18 +6,19 @@ using UnityEngine;
 /// <summary>
 /// <para><c>Class Ressource Manager</c>, herits from <c>MonoBehaviour</c></para>
 /// <para>Gather every ressource from depot and totalise them.</para>
-/// <para>Also, it handles the UI with update every time a depot get new ressource</para>
+/// Made by : Nebre 38-169
+/// Last Update : 09/11/2022 by Nebre 38-169
 /// </summary>
 public class RessourceManager : MonoBehaviour
 {
     //Hold every ressource that must be counted
     public List<Ressource> ressources;
     [SerializeField] public UIManager manager;
+
     //At index i, indicates quantity of ressource i
-    public List<int> ressourceQuantities;
+    private List<int> ressourceQuantities;
     //Every depot is stored here until it is destroyed
     private List<Depot> depots;
-    private List<RessourceDiv> displays;
     private GameRTSBuilder gameRTSBuilder;
 
     private void Awake()
@@ -29,7 +30,6 @@ public class RessourceManager : MonoBehaviour
         }
         ressourceQuantities = new List<int>();
         depots = new List<Depot>();
-        displays = new List<RessourceDiv>();
         //On startup, create a RessourceDiv and a null quantity for every ressource
         for(int i = 0; i < ressources.Count; i++)
         {
@@ -39,11 +39,18 @@ public class RessourceManager : MonoBehaviour
 
     private void Start()
     {
-        gameRTSBuilder.onRessourceUpdate(calculQuantity());
+        gameRTSBuilder.onRessourceUpdate(getQuantities());
         manager.generetaRessourceDiv(ressources.ToArray());
+        manager.onRessourceUpdate(getQuantities());
     }
 
-    private IDictionary<Ressource, int> calculQuantity()
+    /// <summary>
+    /// <c>Function get Quantities</c>
+    /// Calculates and returns a dictionary with every ressources
+    /// as an entry and the available amount of the ressources as the value
+    /// </summary>
+    /// <returns>Dictionnairy using Ressources as key and quantities as value</returns>
+    public IDictionary<Ressource, int> getQuantities()
     {
         IDictionary<Ressource, int> quantity = new Dictionary<Ressource, int>();
         for(int i = 0; i < ressources.Count; i++)
@@ -75,25 +82,95 @@ public class RessourceManager : MonoBehaviour
         if (depots.Contains(d)) { depots.Remove(d); }
     }
 
-    public void addRessourceQuantity(Ressource r, int quantity)
+    /// <summary>
+    /// <c>Function add Ressources</c>
+    /// Adds a list of quantities for matching ressources to the current quantities.
+    /// Warm the <see cref="UIManager"/> and the <see cref="GameRTSBuilder"/> for ressource changes
+    /// </summary>
+    /// <param name="ressourceList">A list of every ressources to update</param>
+    /// <param name="quantities">A list of quantities of each ressources in the same order</param>
+    public void addRessources(Ressource[] ressourceList, int[] quantities)
+    {
+        for(int j = 0; j < ressourceList.Length; j++)
+        {
+            addOneRessourceQuantity(ressourceList[j], quantities[j]);
+        }
+        manager.onRessourceUpdate(getQuantities());
+        gameRTSBuilder.onRessourceUpdate(getQuantities());
+    }
+
+    /// <summary>
+    /// <c>Function add Ressources</c>
+    /// Adds a quantity of ressource to the current quantities.
+    /// Warm the <see cref="UIManager"/> and the <see cref="GameRTSBuilder"/> for ressource changes
+    /// </summary>
+    /// <param name="r">A ressource to update</param>
+    /// <param name="quantity">The quantity to increase the amount of the ressource</param>
+    public void addRessources(Ressource r, int quantity)
+    {
+        addOneRessourceQuantity(r, quantity);
+        manager.onRessourceUpdate(getQuantities());
+        gameRTSBuilder.onRessourceUpdate(getQuantities());
+    }
+
+    /// <summary>
+    /// <c>Function revmoce Ressources</c>
+    /// Removes a list of quantities for matching ressources to the current quantities.
+    /// Warm the <see cref="UIManager"/> and the <see cref="GameRTSBuilder"/> for ressource changes
+    /// </summary>
+    /// <param name="ressourceList">A list of every ressources to update</param>
+    /// <param name="quantities">A list of quantities of each ressources in the same order</param>
+    public void removeRessources(Ressource[] ressourceList, int[] quantities)
+    {
+        for (int j = 0; j < ressourceList.Length; j++)
+        {
+            removeOneRessourceQuantity(ressourceList[j], quantities[j]);
+        }
+        manager.onRessourceUpdate(getQuantities());
+        gameRTSBuilder.onRessourceUpdate(getQuantities());
+    }
+
+    /// <summary>
+    /// <c>Function remove Ressources</c>
+    /// Removes a quantity of ressource to the current quantities.
+    /// Warm the <see cref="UIManager"/> and the <see cref="GameRTSBuilder"/> for ressource changes
+    /// </summary>
+    /// <param name="r">A ressource to update</param>
+    /// <param name="quantity">The quantity to increase the amount of the ressource</param>
+    public void removeRessources(Ressource r, int quantity)
+    {
+        removeOneRessourceQuantity(r, quantity);
+        manager.onRessourceUpdate(getQuantities());
+        gameRTSBuilder.onRessourceUpdate(getQuantities());
+    }
+
+    /// <summary>
+    /// <c>Function add One Ressoure Quantity</c>
+    /// Adds the quantity to the matchin ressource.
+    /// </summary>
+    /// <param name="r">The ressource concerned</param>
+    /// <param name="quantity">The quantity added</param>
+    private void addOneRessourceQuantity(Ressource r, int quantity)
     {
         int index = ressources.IndexOf(r);
         if(index > -1)
         {
             ressourceQuantities[index] += quantity;
-            manager.updateOneRessource(index, ressourceQuantities[index]);
-            gameRTSBuilder.onRessourceUpdate(calculQuantity());
         }
     }
 
-    public void removeRessourceQuantity(Ressource r, int quantity)
+    /// <summary>
+    /// <c>Function remove One Ressoure Quantity</c>
+    /// Removes the quantity to the matchin ressource.
+    /// </summary>
+    /// <param name="r">The ressource concerned</param>
+    /// <param name="quantity">The quantity removed</param>
+    private void removeOneRessourceQuantity(Ressource r, int quantity)
     {
         int index = ressources.IndexOf(r);
         if(index > -1)
         {
             ressourceQuantities[index] -= quantity;
-            manager.updateOneRessource(index, ressourceQuantities[index]);
-            gameRTSBuilder.onRessourceUpdate(calculQuantity());
         }
     }
 }

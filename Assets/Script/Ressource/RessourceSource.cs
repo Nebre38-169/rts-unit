@@ -6,6 +6,8 @@ using UnityEngine;
 /// <para><c>Class Ressource Source</c>, herits from MonoBehaviour</para>
 /// <para>Stores a given quantity of a specified ressource,
 /// handle notifing unit when it is empty</para>
+/// Made by : Nebre 38-169
+/// Last Update : 25/10/2022 by Nebre 38-169
 /// </summary>
 public class RessourceSource : MonoBehaviour
 {
